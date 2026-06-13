@@ -12,4 +12,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('health/', views.health, name='health'),
     path('menu/', views.get_categories_with_products, name='menu'),
+    path('auth/register/', views.RegisterView.as_view(), name='auth-register'),
+    path('auth/profile/', views.ProfileView.as_view(), name='auth-profile'),
 ]

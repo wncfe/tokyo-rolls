@@ -9,6 +9,7 @@ from .models import (
     RestaurantSettings,
     SetItem,
     SubCategory,
+    UserProfile,
 )
 
 
@@ -100,3 +101,9 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
     readonly_fields = ('subtotal', 'discount_amount', 'delivery_fee', 'total', 'created_at')
     inlines = [OrderItemInline]
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'phone', 'created_at')
+    search_fields = ('user__username', 'phone')

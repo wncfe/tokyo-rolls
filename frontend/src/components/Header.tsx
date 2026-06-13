@@ -1,18 +1,17 @@
-import { ShoppingBag, User } from 'lucide-react';
+import { ShoppingBag, User, LogOut } from 'lucide-react';
 import { CartItem } from '../types';
 
 interface HeaderProps {
   cart: CartItem[];
   onOpenCart: () => void;
+  user: { username: string } | null;
+  onOpenAuth: () => void;
+  onLogout: () => void;
 }
 
-export default function Header({ cart, onOpenCart }: HeaderProps) {
+export default function Header({ cart, onOpenCart, user, onOpenAuth, onLogout }: HeaderProps) {
   const totalItems = cart.reduce((count, item) => count + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-
-  const handleLoginClick = () => {
-    alert("Окно авторизации по СМС");
-  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 md:px-8 py-3.5 transition-all duration-300">
@@ -39,15 +38,30 @@ export default function Header({ cart, onOpenCart }: HeaderProps) {
         {/* CONTROLS */}
         <div className="flex items-center gap-2 md:gap-4">
           
-          {/* AUTHENTICATION BUTTON */}
-          <button
-            id="auth-button"
-            onClick={handleLoginClick}
-            className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 select-none cursor-pointer"
-          >
-            <User className="w-4 h-4 text-slate-400" />
-            <span className="hidden sm:inline">Войти</span>
-          </button>
+          {/* AUTH SECTION */}
+          {user ? (
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline text-sm font-medium text-slate-700">
+                {user.username}
+              </span>
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-red-500 px-3 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer select-none"
+                title="Выйти"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Выйти</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 px-3.5 py-2 rounded-xl text-sm font-medium transition-all select-none cursor-pointer"
+            >
+              <User className="w-4 h-4 text-slate-400" />
+              <span className="hidden sm:inline">Войти</span>
+            </button>
+          )}
 
           {/* CART TRIGGER BUTTON */}
           <button

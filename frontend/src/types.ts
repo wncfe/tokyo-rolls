@@ -18,3 +18,27 @@ export interface CartItem {
   product: Product;
   quantity: number;
 }
+
+// Auth types
+export interface User {
+  id: number;
+  username: string;
+  phone: string;
+  address: string;
+}
+
+export interface AuthTokens {
+  access: string;
+  refresh: string;
+}
+
+export interface LoginData {
+  username: string;
+  password: string;
+}
+
+export interface RegisterData {
+  username: string;
+  password: string;
+  phone: string;
+}

@@ -4,9 +4,14 @@ import CategoryNav from './components/CategoryNav';
 import ProductCard from './components/ProductCard';
 import ProductModal from './components/ProductModal';
 import CartDrawer from './components/CartDrawer';
-import { CartItem, Product } from './types';
+import AuthModal from './components/AuthModal';
+import { CartItem, Product, User, LoginData, RegisterData } from './types';
 import { Flame, Sparkles, Clock, MapPin, Star, ShoppingBag } from 'lucide-react';
-import { fetchMenu, transformMenuData, MenuData } from './api';
+import {
+  fetchMenu, transformMenuData, MenuData,
+  loginUser, registerUser, fetchProfile, refreshToken,
+  getStoredToken, clearStoredToken,
+} from './api';
 
 const CART_STORAGE_KEY = 'tokyo-rolls-cart';
 
@@ -28,6 +33,48 @@ export default function App() {
       console.error('Failed to save cart to localStorage:', err);
     }
   }, [cart]);
+
+  // Auth state
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Try to restore session on mount
+  useEffect(() => {
+    const tokens = getStoredToken();
+    if (!tokens?.access) return;
+    (async () => {
+      try {
+        const profile = await fetchProfile();
+        setUser(profile);
+      } catch {
+        // Token expired, try refresh
+        try {
+          await refreshToken();
+          const profile = await fetchProfile();
+          setUser(profile);
+        } catch {
+          clearStoredToken();
+        }
+      }
+    })();
+  }, []);
+
+  // Auth handlers
+  const handleLogin = async (data: LoginData) => {
+    await loginUser(data);
+    const profile = await fetchProfile();
+    setUser(profile);
+  };
+
+  const handleRegister = async (data: RegisterData) => {
+    await registerUser(data);
+    await handleLogin({ username: data.username, password: data.password });
+  };
+
+  const handleLogout = () => {
+    clearStoredToken();
+    setUser(null);
+  };
 
   const [activeCategory, setActiveCategory] = useState<string>('sets');
   const [activeSubcategory, setActiveSubcategory] = useState<'baked' | 'warm' | 'classic'>('baked');
@@ -207,6 +254,9 @@ export default function App() {
       <Header
         cart={cart}
         onOpenCart={() => setIsCartOpen(true)}
+        user={user ? { username: user.username } : null}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* CATEGORIES NAV */}
@@ -578,6 +628,14 @@ export default function App() {
         cartQuantity={selectedProduct ? getItemQuantity(selectedProduct.id) : 0}
         onAddToCart={() => selectedProduct && handleAddToCart(selectedProduct)}
         onRemoveFromCart={() => selectedProduct && handleRemoveFromCart(selectedProduct.id)}
+      />
+
+      {/* AUTH MODAL (ВХОД / РЕГИСТРАЦИЯ) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
       />
 
     </div>

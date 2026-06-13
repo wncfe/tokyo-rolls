@@ -1,9 +1,12 @@
 from django.http import JsonResponse
-from rest_framework import viewsets, filters
-from rest_framework.decorators import api_view
+from rest_framework import viewsets, filters, generics, permissions, status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import Category, SubCategory, Product
-from .serializers import CategorySerializer, SubCategorySerializer, ProductSerializer
+from .models import Category, SubCategory, Product, UserProfile
+from .serializers import (
+    CategorySerializer, SubCategorySerializer, ProductSerializer,
+    RegisterSerializer, UserProfileSerializer,
+)
 
 
 def health(request):
@@ -91,3 +94,28 @@ def get_categories_with_products(request):
         data.append(cat_data)
 
     return Response(data)
+
+
+class RegisterView(generics.CreateAPIView):
+    """Регистрация нового пользователя."""
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            'id': user.id,
+            'username': user.username,
+        }, status=status.HTTP_201_CREATED)
+
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    """Профиль текущего пользователя."""
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
