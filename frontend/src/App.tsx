@@ -11,22 +11,14 @@ import { fetchMenu, transformMenuData, MenuData } from './api';
 const CART_STORAGE_KEY = 'tokyo-rolls-cart';
 
 export default function App() {
-  const [cart, setCart] = useState<CartItem[]>([]);
-
-  // Load cart from localStorage on first render
-  useEffect(() => {
+  const [cart, setCart] = useState<CartItem[]>(() => {
     try {
-      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
-      if (savedCart) {
-        const parsed = JSON.parse(savedCart);
-        if (Array.isArray(parsed)) {
-          setCart(parsed);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to load cart from localStorage:', err);
+      const saved = localStorage.getItem(CART_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
-  }, []);
+  });
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
