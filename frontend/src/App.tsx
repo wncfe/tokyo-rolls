@@ -8,8 +8,35 @@ import { CartItem, Product } from './types';
 import { Flame, Sparkles, Clock, MapPin, Star, ShoppingBag } from 'lucide-react';
 import { fetchMenu, transformMenuData, MenuData } from './api';
 
+const CART_STORAGE_KEY = 'tokyo-rolls-cart';
+
 export default function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
+
+  // Load cart from localStorage on first render
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed)) {
+          setCart(parsed);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load cart from localStorage:', err);
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    } catch (err) {
+      console.error('Failed to save cart to localStorage:', err);
+    }
+  }, [cart]);
+
   const [activeCategory, setActiveCategory] = useState<string>('sets');
   const [activeSubcategory, setActiveSubcategory] = useState<'baked' | 'warm' | 'classic'>('baked');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
