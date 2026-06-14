@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django.db import models
 from unfold.admin import ModelAdmin, TabularInline
-from unfold.widgets import UnfoldAdminTextInputWidget, UnfoldAdminTextareaWidget
+from unfold.widgets import (
+    UnfoldAdminCheckboxSelectMultipleWidget,
+    UnfoldAdminTextInputWidget,
+    UnfoldAdminTextareaWidget,
+)
 
 from .models import (
     Allergen,
@@ -164,7 +168,16 @@ class IngredientAdmin(ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
-    filter_horizontal = ['allergens']
+    formfield_overrides = {
+        models.ManyToManyField: {
+            'widget': UnfoldAdminCheckboxSelectMultipleWidget(attrs={'class': 'admin-checkbox-grid'}),
+        },
+    }
+
+    class Media:
+        css = {
+            'all': ['api/css/admin_checkbox_grid.css'],
+        }
 
 
 @admin.register(Allergen)
