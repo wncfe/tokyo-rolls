@@ -15,15 +15,17 @@ export default function CategoryNav({
     { id: 'sets', name: 'Сеты 🍱' },
     { id: 'rolls', name: 'Роллы 🥢' },
     { id: 'sushi', name: 'Суши 🍣' },
-    { id: 'hot', name: 'Горячее & Салаты 🍜' },
+    { id: 'pokesalads', name: 'Поке/Салаты 🥗' },
+    { id: 'hot', name: 'Горячее 🍜' },
     { id: 'desserts', name: 'Десерты 🍰' },
-    { id: 'drinks', name: 'Напитки 🥤' },
-    { id: 'sauces', name: 'Соусы & Доп 🍶' },
+    { id: 'dop', name: 'Дополнительно 🍶' },
   ];
 
   const subcategories = [
-    { id: 'baked', name: '🔥 Запеченные' },
-    { id: 'warm', name: '🍤 Теплые' },
+    { id: 'firm', name: '🔥 Большие' },
+    { id: 'baked', name: '🧀 Запеченные' },
+    { id: 'free', name: '🍤 Фри' },
+    { id: 'warm', name: '🌡️ Теплые' },
     { id: 'classic', name: '🥑 Классические' },
   ];
 
@@ -47,15 +49,15 @@ export default function CategoryNav({
 
   const handleMainCategoryClick = (catId: string) => {
     if (catId === 'rolls') {
-      onSelectCategory('rolls', 'baked');
-      handleScrollTo('category-rolls-baked', 'rolls');
+      onSelectCategory('rolls', 'firm');
+      handleScrollTo('category-rolls-firm', 'rolls');
     } else {
       onSelectCategory(catId);
       handleScrollTo(`category-${catId}`, catId);
     }
   };
 
-  const handleSubCategoryClick = (subId: 'baked' | 'warm' | 'classic') => {
+  const handleSubCategoryClick = (subId: 'firm' | 'baked' | 'free' | 'warm' | 'classic') => {
     onSelectCategory('rolls', subId);
     handleScrollTo(`category-rolls-${subId}`, 'rolls');
   };
@@ -73,7 +75,7 @@ export default function CategoryNav({
                 <button
                   key={cat.id}
                   id={`nav-cat-${cat.id}`}
-                  onClick={() => handleMainCategoryClick(cat.id as 'sets' | 'sushi' | 'rolls')}
+                  onClick={() => handleMainCategoryClick(cat.id as 'sets' | 'sushi' | 'rolls' | 'pokesalads' | 'hot' | 'desserts' | 'dop')}
                   className={`px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-300 select-none cursor-pointer ${
                     isActive
                       ? 'bg-[#E11D48] text-white shadow-md shadow-rose-200/40 scale-102 font-bold'
@@ -106,7 +108,7 @@ export default function CategoryNav({
                   <button
                     key={sub.id}
                     id={`nav-sub-${sub.id}`}
-                    onClick={() => handleSubCategoryClick(sub.id as 'baked' | 'warm' | 'classic')}
+                    onClick={() => handleSubCategoryClick(sub.id as 'firm' | 'baked' | 'free' | 'warm' | 'classic')}
                     className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 select-none cursor-pointer ${
                       isActive
                         ? 'bg-slate-800 text-white font-semibold'

@@ -1,5 +1,5 @@
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
-import { CartItem, MenuItem } from '../types';
+import { CartItem, MenuItem, RestaurantSettings } from '../types';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface CartDrawerProps {
   onRemoveFromCart: (itemId: string) => void;
   onClearItem: (itemId: string) => void;
   isOpenStatus: boolean;
+  settings: RestaurantSettings;
 }
 
 export default function CartDrawer({
@@ -19,6 +20,7 @@ export default function CartDrawer({
   onRemoveFromCart,
   onClearItem,
   isOpenStatus,
+  settings,
 }: CartDrawerProps) {
   if (!isOpen) return null;
 
@@ -166,17 +168,18 @@ export default function CartDrawer({
 
         {/* FOOTER */}
         {cart.length > 0 && (() => {
-          const isTooLow = totalPrice < 700;
+          const minOrder = settings.min_order_amount;
+          const isTooLow = totalPrice < minOrder;
           const canCheckout = isOpenStatus && !isTooLow;
 
           let btnText = "Оформить заказ";
           let btnClasses = "w-full py-4 font-bold text-xs md:text-sm uppercase rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 border border-transparent select-none";
           
           if (!isOpenStatus) {
-            btnText = "Заказы принимаются с 11:00";
+            btnText = `Заказы принимаются с ${settings.opening_hour}:00`;
             btnClasses += " bg-orange-100 border border-orange-200 text-orange-600 cursor-not-allowed opacity-90";
           } else if (isTooLow) {
-            btnText = `Минималка 700 ₽ • Ещё ${700 - totalPrice} ₽`;
+            btnText = `Минималка ${minOrder} ₽ • Ещё ${minOrder - totalPrice} ₽`;
             btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
           } else {
             btnClasses += " bg-slate-950 hover:bg-slate-800 text-white shadow-xl hover:shadow-slate-200 active:scale-98 cursor-pointer";
@@ -188,17 +191,17 @@ export default function CartDrawer({
               {!isOpenStatus ? (
                 <div className="mb-4 bg-orange-50 border border-orange-100/70 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-orange-800 select-none animate-fadeIn">
                   <span className="font-bold flex items-center gap-1.5">⏳ Ресторан закрыт</span>
-                  <span>Принимаем онлайн-заказы ежедневно с 11:00 до 23:00. Оформление станет доступно в рабочие часы (кликните плашку в шапке для теста).</span>
+                  <span>Принимаем онлайн-заказы ежедневно с {settings.opening_hour}:00 до {settings.closing_hour}:00. Оформление станет доступно в рабочие часы.</span>
                 </div>
               ) : isTooLow ? (
                 <div className="mb-4 bg-rose-50 border border-rose-100 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-[#E11D48] select-none animate-fadeIn">
                   <span className="font-bold flex items-center gap-1.5">🍅 Минимальная сумма заказа</span>
-                  <span>Добавь в корзину блюд еще на <strong className="font-black">{(700 - totalPrice).toLocaleString('ru-RU')} ₽</strong> для возможности доставки по городу.</span>
+                  <span>Добавь в корзину блюд еще на <strong className="font-black">{(minOrder - totalPrice).toLocaleString('ru-RU')} ₽</strong> для возможности доставки по городу.</span>
                 </div>
               ) : (
                 <div className="mb-4 bg-emerald-50 border border-emerald-100/70 p-3.5 rounded-2xl text-xs text-emerald-800 flex flex-col gap-0.5 animate-fadeIn">
                   <span className="font-bold text-emerald-900">✨ Доставка бесплатная!</span>
-                  <p className="text-[11px] text-emerald-700 leading-tight">Для отдаленных и загородных районов Перми стоимость курьера составит от 100 ₽.</p>
+                  <p className="text-[11px] text-emerald-700 leading-tight">Для отдаленных и загородных районов стоимость курьера составит от {settings.suburban_delivery_fee} ₽.</p>
                 </div>
               )}
 

@@ -5,12 +5,12 @@ import ProductCard from './components/ProductCard';
 import ProductModal from './components/ProductModal';
 import CartDrawer from './components/CartDrawer';
 import AuthModal from './components/AuthModal';
-import { CartItem, Product, Set, MenuItem, User, LoginData, RegisterData } from './types';
+import { CartItem, Product, Set, MenuItem, User, LoginData, RegisterData, RestaurantSettings } from './types';
 import { Flame, Sparkles, Clock, MapPin, Star, ShoppingBag } from 'lucide-react';
 import {
   fetchMenu, transformMenuData, MenuData,
   loginUser, registerUser, fetchProfile, refreshToken,
-  getStoredToken, clearStoredToken,
+  getStoredToken, clearStoredToken, fetchSettings,
 } from './api';
 
 const CART_STORAGE_KEY = 'tokyo-rolls-cart';
@@ -77,7 +77,7 @@ export default function App() {
   };
 
   const [activeCategory, setActiveCategory] = useState<string>('sets');
-  const [activeSubcategory, setActiveSubcategory] = useState<'baked' | 'warm' | 'classic'>('baked');
+  const [activeSubcategory, setActiveSubcategory] = useState<'firm' | 'baked' | 'free' | 'warm' | 'classic'>('firm');
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   
@@ -86,29 +86,47 @@ export default function App() {
   const [isLoadingMenu, setIsLoadingMenu] = useState(true);
   const [menuError, setMenuError] = useState<string | null>(null);
 
-  // Dynamic restaurant open/close status (11:00 to 23:00)
-  const [isRestaurantOpen, setIsRestaurantOpen] = useState(() => {
-    const hours = new Date().getHours();
-    return hours >= 11 && hours < 23;
+  // Restaurant settings from backend
+  const [restaurantSettings, setRestaurantSettings] = useState<RestaurantSettings>({
+    opening_hour: 11,
+    closing_hour: 23,
+    min_order_amount: 700,
+    free_delivery_from: 700,
+    suburban_delivery_fee: 100,
+    delivery_time_min: 45,
+    delivery_time_max: 60,
   });
 
+  // Dynamic restaurant open/close status
+  const [isRestaurantOpen, setIsRestaurantOpen] = useState(() => {
+    const hours = new Date().getHours();
+    const s = restaurantSettings;
+    return hours >= s.opening_hour && hours < s.closing_hour;
+  });
+
+  // Update open status periodically using settings from backend
   useEffect(() => {
     const timer = setInterval(() => {
       const hours = new Date().getHours();
-      setIsRestaurantOpen(hours >= 11 && hours < 23);
-    }, 15000); // Check every 15 seconds
+      const s = restaurantSettings;
+      setIsRestaurantOpen(hours >= s.opening_hour && hours < s.closing_hour);
+    }, 15000);
     return () => clearInterval(timer);
-  }, []);
+  }, [restaurantSettings]);
 
-  // Fetch menu data from backend
+  // Fetch menu data + settings from backend
   useEffect(() => {
     const loadMenu = async () => {
       try {
         setIsLoadingMenu(true);
         setMenuError(null);
-        const data = await fetchMenu();
+        const [data, settings] = await Promise.all([
+          fetchMenu(),
+          fetchSettings(),
+        ]);
         const transformedData = transformMenuData(data);
         setMenuData(transformedData);
+        setRestaurantSettings(settings);
       } catch (error) {
         console.error('Failed to load menu:', error);
         setMenuError('Не удалось загрузить меню. Проверьте подключение к серверу.');
@@ -129,22 +147,24 @@ export default function App() {
 
       const setsSection = document.getElementById('category-sets');
       const sushiSection = document.getElementById('category-sushi');
+      const pokesaladsSection = document.getElementById('category-pokesalads');
+      const rollsFirmSection = document.getElementById('category-rolls-firm');
       const rollsBakedSection = document.getElementById('category-rolls-baked');
+      const rollsFreeSection = document.getElementById('category-rolls-free');
       const rollsWarmSection = document.getElementById('category-rolls-warm');
       const rollsClassicSection = document.getElementById('category-rolls-classic');
       const hotSection = document.getElementById('category-hot');
       const dessertsSection = document.getElementById('category-desserts');
-      const drinksSection = document.getElementById('category-drinks');
-      const saucesSection = document.getElementById('category-sauces');
+      const dopSection = document.getElementById('category-dop');
 
-      if (saucesSection && scrollPosition >= saucesSection.offsetTop) {
-        setActiveCategory('sauces');
-      } else if (drinksSection && scrollPosition >= drinksSection.offsetTop) {
-        setActiveCategory('drinks');
+      if (dopSection && scrollPosition >= dopSection.offsetTop) {
+        setActiveCategory('dop');
       } else if (dessertsSection && scrollPosition >= dessertsSection.offsetTop) {
         setActiveCategory('desserts');
       } else if (hotSection && scrollPosition >= hotSection.offsetTop) {
         setActiveCategory('hot');
+      } else if (pokesaladsSection && scrollPosition >= pokesaladsSection.offsetTop) {
+        setActiveCategory('pokesalads');
       } else if (sushiSection && scrollPosition >= sushiSection.offsetTop) {
         setActiveCategory('sushi');
       } else if (rollsClassicSection && scrollPosition >= rollsClassicSection.offsetTop) {
@@ -153,9 +173,15 @@ export default function App() {
       } else if (rollsWarmSection && scrollPosition >= rollsWarmSection.offsetTop) {
         setActiveCategory('rolls');
         setActiveSubcategory('warm');
+      } else if (rollsFreeSection && scrollPosition >= rollsFreeSection.offsetTop) {
+        setActiveCategory('rolls');
+        setActiveSubcategory('free');
       } else if (rollsBakedSection && scrollPosition >= rollsBakedSection.offsetTop) {
         setActiveCategory('rolls');
         setActiveSubcategory('baked');
+      } else if (rollsFirmSection && scrollPosition >= rollsFirmSection.offsetTop) {
+        setActiveCategory('rolls');
+        setActiveSubcategory('firm');
       } else if (setsSection && scrollPosition >= setsSection.offsetTop) {
         setActiveCategory('sets');
       }
@@ -302,7 +328,7 @@ export default function App() {
                   <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
                   <div className="flex flex-col text-left">
                     <span className="text-emerald-800 font-bold text-xs leading-none">● Открыто. Принимаем заказы</span>
-                    <span className="text-[9.5px] text-emerald-650 mt-0.5 font-light">С 11:00 до 23:00</span>
+                    <span className="text-[9.5px] text-emerald-650 mt-0.5 font-light">С {restaurantSettings.opening_hour}:00 до {restaurantSettings.closing_hour}:00</span>
                   </div>
                 </div>
               ) : (
@@ -313,7 +339,7 @@ export default function App() {
                   <Clock className="w-4 h-4 text-orange-500 shrink-0" />
                   <div className="flex flex-col text-left">
                     <span className="text-orange-900 font-bold text-xs leading-none">○ Сейчас закрыто</span>
-                    <span className="text-[9.5px] text-orange-650 mt-0.5 font-light">Откроемся в 11:00</span>
+                    <span className="text-[9.5px] text-orange-650 mt-0.5 font-light">Откроемся в {restaurantSettings.opening_hour}:00</span>
                   </div>
                 </div>
               )}
@@ -322,8 +348,8 @@ export default function App() {
               <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl shadow-xs text-left max-w-xs">
                 <MapPin className="w-4 h-4 text-[#E11D48] shrink-0" />
                 <div className="flex flex-col">
-                  <span className="font-bold text-xs text-slate-800 leading-none">Бесплатно от 700 ₽</span>
-                  <span className="text-[10px] text-slate-400 mt-0.5 font-medium leading-tight">Окраины Перми: от 100 ₽</span>
+                  <span className="font-bold text-xs text-slate-800 leading-none">Бесплатно от {restaurantSettings.free_delivery_from} ₽</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5 font-medium leading-tight">Окраины Перми: от {restaurantSettings.suburban_delivery_fee} ₽</span>
                 </div>
               </div>
 
@@ -331,7 +357,7 @@ export default function App() {
               <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl shadow-xs text-left">
                 <Clock className="w-4 h-4 text-slate-500 shrink-0" />
                 <div className="flex flex-col">
-                  <span className="font-bold text-xs text-slate-800 leading-none">45-60 минут</span>
+                  <span className="font-bold text-xs text-slate-800 leading-none">{restaurantSettings.delivery_time_min}-{restaurantSettings.delivery_time_max} минут</span>
                   <span className="text-[10px] text-slate-400 mt-0.5 font-medium">В зависимости от дорог</span>
                 </div>
               </div>
@@ -407,7 +433,27 @@ export default function App() {
             <span className="text-slate-400 font-mono text-xs select-none">АВТОРСКИЕ РЕЦЕПТЫ ШЕФА</span>
           </div>
 
-          {/* Subcategory 1: Baked */}
+          {/* Subcategory: Firm (Большие) */}
+          <div id="category-rolls-firm" className="scroll-mt-48 pt-6 mb-10">
+            <h3 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2 mb-4">
+              <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
+              Большие роллы
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {getProductsByCategory('rolls', 'firm').map((product) => (
+                <ProductCard
+                   key={product.id}
+                   product={product}
+                   cartQuantity={getItemQuantity(product.id)}
+                   onAddToCart={() => handleAddToCart(product)}
+                   onRemoveFromCart={() => handleRemoveFromCart(product.id)}
+                   onClickCard={() => setSelectedProduct(product)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Subcategory: Baked */}
           <div id="category-rolls-baked" className="scroll-mt-48 pt-6 mb-10">
             <h3 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2 mb-4">
               <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
@@ -427,7 +473,27 @@ export default function App() {
             </div>
           </div>
 
-          {/* Subcategory 2: Warm */}
+          {/* Subcategory: Free (Фри) */}
+          <div id="category-rolls-free" className="scroll-mt-48 pt-6 mb-10">
+            <h3 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2 mb-4">
+              <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
+              Фри роллы
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {getProductsByCategory('rolls', 'free').map((product) => (
+                <ProductCard
+                   key={product.id}
+                   product={product}
+                   cartQuantity={getItemQuantity(product.id)}
+                   onAddToCart={() => handleAddToCart(product)}
+                   onRemoveFromCart={() => handleRemoveFromCart(product.id)}
+                   onClickCard={() => setSelectedProduct(product)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Subcategory: Warm */}
           <div id="category-rolls-warm" className="scroll-mt-48 pt-6 mb-10">
             <h3 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2 mb-4">
               <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
@@ -447,7 +513,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Subcategory 3: Classic */}
+          {/* Subcategory: Classic */}
           <div id="category-rolls-classic" className="scroll-mt-48 pt-6">
             <h3 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2 mb-4">
               <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
@@ -480,6 +546,29 @@ export default function App() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {getProductsByCategory('sushi').map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                cartQuantity={getItemQuantity(product.id)}
+                onAddToCart={() => handleAddToCart(product)}
+                onRemoveFromCart={() => handleRemoveFromCart(product.id)}
+                onClickCard={() => setSelectedProduct(product)}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* ПОКЕ/САЛАТЫ SECTION */}
+        <section id="category-pokesalads" className="mb-14 scroll-mt-40 pt-10">
+          <div className="flex items-baseline gap-3 mb-6 border-b border-slate-100 pb-3">
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 uppercase font-sans">
+              Поке & Салаты
+            </h2>
+            <span className="text-slate-400 font-mono text-xs select-none">СВЕЖЕСТЬ В КАЖДОМ КУСОЧКЕ</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {getProductsByCategory('pokesalads').map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -538,40 +627,17 @@ export default function App() {
           </div>
         </section>
 
-        {/* НАПИТКИ SECTION */}
-        <section id="category-drinks" className="mb-14 scroll-mt-40 pt-10">
+        {/* ДОПОЛНИТЕЛЬНО SECTION */}
+        <section id="category-dop" className="mb-14 scroll-mt-40 pt-10">
           <div className="flex items-baseline gap-3 mb-6 border-b border-slate-100 pb-3">
             <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 uppercase font-sans">
-              Напитки
+              Дополнительно
             </h2>
-            <span className="text-slate-400 font-mono text-xs select-none">ОСВЕЖАЮЩИЕ ВКУСЫ</span>
+            <span className="text-slate-400 font-mono text-xs select-none">НАПИТКИ, СОУСЫ И ПРОЧЕЕ</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {getProductsByCategory('drinks').map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                cartQuantity={getItemQuantity(product.id)}
-                onAddToCart={() => handleAddToCart(product)}
-                onRemoveFromCart={() => handleRemoveFromCart(product.id)}
-                onClickCard={() => setSelectedProduct(product)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* СОУСЫ & ДОПОЛНИТЕЛЬНО SECTION */}
-        <section id="category-sauces" className="mb-14 scroll-mt-40 pt-10">
-          <div className="flex items-baseline gap-3 mb-6 border-b border-slate-100 pb-3">
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 uppercase font-sans">
-              Соусы & Дополнительно
-            </h2>
-            <span className="text-slate-400 font-mono text-xs select-none">ИДЕАЛЬНЫЙ ШТРИХ</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {getProductsByCategory('sauces').map((product) => (
+            {getProductsByCategory('dop').map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -612,6 +678,7 @@ export default function App() {
         onClose={() => setIsCartOpen(false)}
         cart={cart}
         isOpenStatus={isOpen}
+        settings={restaurantSettings}
         onAddToCart={(id) => {
           const prod = findProductById(id);
           if (prod) handleAddToCart(prod);

@@ -153,7 +153,8 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['category__sort_order', 'subcategory__sort_order', 'sort_order', 'name']
+        # Новые сверху; sort_order — опциональный оверрайд для ручной сортировки
+        ordering = ['-created_at']
         verbose_name = 'Продукт'
         verbose_name_plural = 'Продукты'
 
@@ -163,7 +164,12 @@ class Product(models.Model):
     def clean(self):
         super().clean()
         if self.category_id:
-            category_slug = self.category.slug
+            # Избегаем лишнего запроса: берём slug напрямую из связанного объекта
+            # если он уже загружен, либо делаем лёгкий запрос только за slug
+            try:
+                category_slug = Category.objects.only('slug').get(pk=self.category_id).slug
+            except Category.DoesNotExist:
+                raise ValidationError({'category': 'Категория не найдена.'})
             if category_slug == 'rolls' and not self.subcategory_id:
                 raise ValidationError({'subcategory': 'У роллов должна быть указана подкатегория.'})
             if category_slug != 'rolls' and self.subcategory_id:
@@ -211,7 +217,8 @@ class Set(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['sort_order', 'name']
+        # Новые сверху; sort_order — опциональный оверрайд для ручной сортировки
+        ordering = ['-created_at']
         verbose_name = 'Сет'
         verbose_name_plural = 'Сеты'
 
@@ -362,8 +369,11 @@ class RestaurantSettings(models.Model):
 
     @classmethod
     def get_solo(cls):
-        settings, _ = cls.objects.get_or_create(pk=1)
-        return settings
+        """Singleton-паттерн: всегда одна запись настроек, без привязки к pk."""
+        obj = cls.objects.first()
+        if obj is None:
+            obj = cls.objects.create()
+        return obj
 
 
 class PromoCode(models.Model):

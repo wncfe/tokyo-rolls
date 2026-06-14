@@ -1,4 +1,4 @@
-import { Product, Set, MenuItem, AuthTokens, LoginData, RegisterData, User } from './types';
+import { Product, Set, MenuItem, AuthTokens, LoginData, RegisterData, User, RestaurantSettings, CheckoutData } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -204,4 +204,33 @@ export async function refreshToken(): Promise<{ access: string }> {
   const data = await handleResponse<{ access: string }>(response);
   setStoredToken({ ...tokens, access: data.access });
   return data;
+}
+
+// ─── Restaurant Settings ───
+
+export async function fetchSettings(): Promise<RestaurantSettings> {
+  const response = await fetch(`${API_BASE_URL}/settings/`);
+  return handleResponse(response);
+}
+
+// ─── Promo Code ───
+
+export async function validatePromo(code: string): Promise<{ code: string; discount_percent: number; description: string }> {
+  const response = await fetch(`${API_BASE_URL}/promo/validate/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  return handleResponse(response);
+}
+
+// ─── Checkout ───
+
+export async function submitOrder(data: CheckoutData): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/checkout/`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
 }

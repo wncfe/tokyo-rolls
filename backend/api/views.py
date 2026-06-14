@@ -1,11 +1,14 @@
 from django.http import JsonResponse
+from django.db.models import Prefetch
 from rest_framework import viewsets, filters, generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import Category, SubCategory, Product, Set, UserProfile
+from .models import Category, SubCategory, Product, Set, UserProfile, Order, RestaurantSettings
 from .serializers import (
     CategorySerializer, SubCategorySerializer, ProductSerializer, SetSerializer,
     RegisterSerializer, UserProfileSerializer,
+    OrderWriteSerializer, OrderReadSerializer,
+    RestaurantSettingsSerializer, PromoCodeValidateSerializer,
 )
 
 
@@ -32,8 +35,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ProductSerializer
     lookup_field = 'slug'
     filter_backends = [filters.OrderingFilter]
-    ordering_fields = ['sort_order', 'name', 'price']
-    ordering = ['sort_order', 'name']
+    ordering_fields = ['sort_order', 'name', 'price', 'created_at']
+    ordering = ['-created_at', 'sort_order', 'name']
 
     def get_queryset(self):
         queryset = Product.objects.filter(is_available=True).select_related(
@@ -60,8 +63,8 @@ class SetViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SetSerializer
     lookup_field = 'slug'
     filter_backends = [filters.OrderingFilter]
-    ordering_fields = ['sort_order', 'name', 'price']
-    ordering = ['sort_order', 'name']
+    ordering_fields = ['sort_order', 'name', 'price', 'created_at']
+    ordering = ['-created_at', 'sort_order', 'name']
 
     def get_queryset(self):
         return Set.objects.filter(is_available=True).prefetch_related(
@@ -75,9 +78,11 @@ def get_categories_with_products(request):
     Получить все категории с их продуктами + отдельно сеты.
     Оптимизированный эндпоинт для главной страницы фронтенда.
     """
+    # Prefetch с фильтром — чтобы .filter() в цикле не делал новых запросов
     categories = Category.objects.filter(is_active=True).prefetch_related(
-        'products',
-        'subcategories__products'
+        Prefetch('products', queryset=Product.objects.filter(is_available=True).order_by('-created_at')),
+        Prefetch('subcategories__products', queryset=Product.objects.filter(is_available=True).order_by('-created_at')),
+        'subcategories',
     ).order_by('sort_order')
 
     data = []
@@ -85,7 +90,7 @@ def get_categories_with_products(request):
     # Сеты идут первым блоком (отдельная сущность Set, не Product)
     sets = Set.objects.filter(is_available=True).prefetch_related(
         'set_items__included_product', 'ingredients__allergens'
-    ).order_by('sort_order')
+    ).order_by('-created_at')
     if sets.exists():
         data.append({
             'slug': 'sets',
@@ -105,7 +110,7 @@ def get_categories_with_products(request):
             'name': category.name,
             'subtitle': category.subtitle,
             'products': ProductSerializer(
-                category.products.filter(is_available=True).order_by('sort_order'),
+                category.products.all(),  # Prefetch уже отфильтровал — .all() без запроса!
                 many=True
             ).data,
         }
@@ -118,7 +123,7 @@ def get_categories_with_products(request):
                     'slug': subcat.slug,
                     'name': subcat.name,
                     'products': ProductSerializer(
-                        subcat.products.filter(is_available=True).order_by('sort_order'),
+                        subcat.products.all(),
                         many=True
                     ).data,
                 })
@@ -152,3 +157,39 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
         return profile
+
+
+class CheckoutView(generics.CreateAPIView):
+    """Оформление заказа из корзины."""
+    serializer_class = OrderWriteSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return Response(
+            OrderReadSerializer(order).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+@api_view(['GET'])
+def restaurant_settings(request):
+    """Публичные настройки ресторана: часы работы, мин. заказ, доставка."""
+    settings = RestaurantSettings.get_solo()
+    return Response(RestaurantSettingsSerializer(settings).data)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def validate_promo(request):
+    """Проверить промокод и вернуть скидку."""
+    serializer = PromoCodeValidateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    promo = serializer.get_promo()
+    return Response({
+        'code': promo.code,
+        'discount_percent': promo.discount_percent,
+        'description': promo.description,
+    })
