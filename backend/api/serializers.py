@@ -38,6 +38,7 @@ class ProductSerializer(serializers.ModelSerializer):
     subcategory_slug = serializers.CharField(source='subcategory.slug', read_only=True, allow_null=True)
     composition = serializers.SerializerMethodField()
     allergens = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -58,6 +59,14 @@ class ProductSerializer(serializers.ModelSerializer):
             'category_slug',
             'subcategory_slug',
         ]
+
+    def get_image(self, obj):
+        if not obj.image:
+            return None
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
 
     def get_composition(self, obj):
         return list(obj.ingredients.values_list('name', flat=True))
@@ -84,6 +93,7 @@ class SetSerializer(serializers.ModelSerializer):
     composition = serializers.SerializerMethodField()
     allergens = serializers.SerializerMethodField()
     included_products = SetItemSerializer(source='set_items', many=True, read_only=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Set
@@ -103,6 +113,14 @@ class SetSerializer(serializers.ModelSerializer):
             'benefit_badge',
             'is_available',
         ]
+
+    def get_image(self, obj):
+        if not obj.image:
+            return None
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
 
     def get_composition(self, obj):
         return list(obj.ingredients.values_list('name', flat=True))

@@ -96,7 +96,7 @@ def get_categories_with_products(request):
             'slug': 'sets',
             'name': 'Сеты',
             'subtitle': 'ЛУЧШИЙ ВЫБОР ДЛЯ КОМПАНИИ',
-            'products': SetSerializer(sets, many=True).data,
+            'products': SetSerializer(sets, many=True, context={'request': request}).data,
         })
 
     for category in categories:
@@ -111,7 +111,8 @@ def get_categories_with_products(request):
             'subtitle': category.subtitle,
             'products': ProductSerializer(
                 category.products.all(),  # Prefetch уже отфильтровал — .all() без запроса!
-                many=True
+                many=True,
+                context={'request': request}
             ).data,
         }
 
@@ -124,7 +125,8 @@ def get_categories_with_products(request):
                     'name': subcat.name,
                     'products': ProductSerializer(
                         subcat.products.all(),
-                        many=True
+                        many=True,
+                        context={'request': request}
                     ).data,
                 })
             cat_data['subcategories'] = subcats
