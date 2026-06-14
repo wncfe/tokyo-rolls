@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import CategoryNav from './components/CategoryNav';
 import ProductCard from './components/ProductCard';
@@ -80,6 +80,18 @@ export default function App() {
   const [activeSubcategory, setActiveSubcategory] = useState<'firm' | 'baked' | 'free' | 'warm' | 'classic'>('firm');
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Ref to block scroll-driven category detection during programmatic (nav-click) scrolling
+  const isProgrammaticScrolling = useRef(false);
+  const scrollLockTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const unlockScrolling = () => {
+    isProgrammaticScrolling.current = false;
+    if (scrollLockTimer.current) {
+      clearTimeout(scrollLockTimer.current);
+      scrollLockTimer.current = null;
+    }
+    window.removeEventListener('scrollend', unlockScrolling);
+  };
   
   // Menu data from backend
   const [menuData, setMenuData] = useState<MenuData[]>([]);
@@ -143,6 +155,9 @@ export default function App() {
   // Sync scroll positions to highlight active category in navigation bar
   useEffect(() => {
     const handleScroll = () => {
+      // Skip scroll-driven detection while a programmatic nav-click scroll is in progress
+      if (isProgrammaticScrolling.current) return;
+
       const scrollPosition = window.scrollY + 180;
 
       const setsSection = document.getElementById('category-sets');
@@ -267,6 +282,14 @@ export default function App() {
   };
 
   const handleSelectNavCategory = (category: any, subcategory?: any) => {
+    // Lock scroll-driven detection so smooth scroll doesn't flicker through intermediate categories.
+    // 'scrollend' fires precisely when the browser finishes the smooth animation (any distance).
+    // Fallback timer ensures unlock even if the event isn't supported.
+    isProgrammaticScrolling.current = true;
+    window.addEventListener('scrollend', unlockScrolling, { once: true });
+    if (scrollLockTimer.current) clearTimeout(scrollLockTimer.current);
+    scrollLockTimer.current = setTimeout(unlockScrolling, 2000);
+
     setActiveCategory(category);
     if (subcategory) {
       setActiveSubcategory(subcategory);
