@@ -36,6 +36,8 @@ ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 # Application definition
 
 INSTALLED_APPS = [
+    'unfold',
+    'unfold.contrib.forms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
