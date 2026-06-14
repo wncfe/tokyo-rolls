@@ -170,6 +170,8 @@ class Product(models.Model):
                 category_slug = Category.objects.only('slug').get(pk=self.category_id).slug
             except Category.DoesNotExist:
                 raise ValidationError({'category': 'Категория не найдена.'})
+            if category_slug == 'sets':
+                raise ValidationError({'category': 'Сеты — отдельная сущность, используйте раздел "Сеты".'})
             if category_slug == 'rolls' and not self.subcategory_id:
                 raise ValidationError({'subcategory': 'У роллов должна быть указана подкатегория.'})
             if category_slug != 'rolls' and self.subcategory_id:

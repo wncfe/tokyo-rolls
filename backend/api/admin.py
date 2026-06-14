@@ -89,13 +89,18 @@ class ProductAdmin(ModelAdmin):
     list_filter = ('category', 'subcategory', 'is_available', 'is_new')
     search_fields = ('name', 'slug', 'description')
     prepopulated_fields = {'slug': ('name',)}
-    autocomplete_fields = ['category', 'subcategory']
+    autocomplete_fields = ['subcategory']
     inlines = [ProductIngredientInline]
 
     formfield_overrides = {
         models.CharField: {'widget': UnfoldAdminTextInputWidget},
         models.TextField: {'widget': UnfoldAdminTextareaWidget},
     }
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'category':
+            kwargs['queryset'] = Category.objects.exclude(slug='sets')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(Set)
