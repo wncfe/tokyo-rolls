@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.db import models
+from unfold.admin import ModelAdmin, TabularInline
+from unfold.widgets import UnfoldAdminTextInputWidget, UnfoldAdminTextareaWidget
 
 from .models import (
     Category,
@@ -12,14 +15,28 @@ from .models import (
     UserProfile,
 )
 
-
-class SubCategoryInline(admin.TabularInline):
+# Переводим инлайны на рельсы Unfold
+class SubCategoryInline(TabularInline):
     model = SubCategory
     extra = 0
 
 
+class SetItemInline(TabularInline):
+    model = SetItem
+    fk_name = 'set_product'
+    extra = 1
+    autocomplete_fields = ['included_product']
+
+
+class OrderItemInline(TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ('product', 'product_name', 'unit_price', 'quantity', 'weight_grams')
+
+
+# Переводим основные классы на Unfold (ModelAdmin)
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(ModelAdmin):
     list_display = ('name', 'slug', 'sort_order', 'is_active')
     list_editable = ('sort_order', 'is_active')
     search_fields = ('name', 'slug')
@@ -28,22 +45,15 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(SubCategory)
-class SubCategoryAdmin(admin.ModelAdmin):
+class SubCategoryAdmin(ModelAdmin):
     list_display = ('name', 'slug', 'category', 'sort_order', 'is_active')
     list_filter = ('category',)
     search_fields = ('name', 'slug')
     prepopulated_fields = {'slug': ('name',)}
 
 
-class SetItemInline(admin.TabularInline):
-    model = SetItem
-    fk_name = 'set_product'
-    extra = 1
-    autocomplete_fields = ['included_product']
-
-
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(ModelAdmin):
     list_display = (
         'name',
         'category',
@@ -59,16 +69,23 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     autocomplete_fields = ['category', 'subcategory']
     inlines = [SetItemInline]
+    
+    
+    formfield_overrides = {
+        models.CharField: {'widget': UnfoldAdminTextInputWidget},
+        models.TextField: {'widget': UnfoldAdminTextareaWidget},
+    }
+
 
 
 @admin.register(SetItem)
-class SetItemAdmin(admin.ModelAdmin):
+class SetItemAdmin(ModelAdmin):
     list_display = ('set_product', 'included_product', 'quantity')
     autocomplete_fields = ['set_product', 'included_product']
 
 
 @admin.register(RestaurantSettings)
-class RestaurantSettingsAdmin(admin.ModelAdmin):
+class RestaurantSettingsAdmin(ModelAdmin):
     list_display = (
         'opening_hour',
         'closing_hour',
@@ -84,19 +101,13 @@ class RestaurantSettingsAdmin(admin.ModelAdmin):
 
 
 @admin.register(PromoCode)
-class PromoCodeAdmin(admin.ModelAdmin):
+class PromoCodeAdmin(ModelAdmin):
     list_display = ('code', 'discount_percent', 'is_active', 'valid_until')
     search_fields = ('code',)
 
 
-class OrderItemInline(admin.TabularInline):
-    model = OrderItem
-    extra = 0
-    readonly_fields = ('product', 'product_name', 'unit_price', 'quantity', 'weight_grams')
-
-
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ModelAdmin):
     list_display = ('id', 'status', 'customer_phone', 'total', 'created_at')
     list_filter = ('status', 'created_at')
     readonly_fields = ('subtotal', 'discount_amount', 'delivery_fee', 'total', 'created_at')
@@ -104,6 +115,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(ModelAdmin):
     list_display = ('user', 'phone', 'created_at')
     search_fields = ('user__username', 'phone')
+
