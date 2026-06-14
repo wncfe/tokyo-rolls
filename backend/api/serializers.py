@@ -397,7 +397,7 @@ class RestaurantSettingsSerializer(serializers.ModelSerializer):
 
     def get_is_open(self, obj):
         from django.utils import timezone
-        now = timezone.localtime()  # Europe/Moscow
+        now = timezone.localtime()  # Asia/Yekaterinburg (Пермь)
         return obj.opening_hour <= now.hour < obj.closing_hour
 
 
