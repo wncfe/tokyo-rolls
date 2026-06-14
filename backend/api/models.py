@@ -59,6 +59,36 @@ class SubCategory(models.Model):
         return f'{self.category.name} → {self.name}'
 
 
+class Ingredient(models.Model):
+    """Ингредиент блюда (состав)."""
+
+    slug = models.SlugField(max_length=64, unique=True, verbose_name='Slug')
+    name = models.CharField(max_length=100, unique=True, verbose_name='Название')
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return self.name
+
+
+class Allergen(models.Model):
+    """Аллерген (отображается в карточке продукта)."""
+
+    slug = models.SlugField(max_length=64, unique=True, verbose_name='Slug')
+    name = models.CharField(max_length=100, unique=True, verbose_name='Название')
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Аллерген'
+        verbose_name_plural = 'Аллергены'
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     """
     Универсальная позиция меню: сет, ролл, суши, горячее, десерт, напиток, соус.
@@ -97,17 +127,17 @@ class Product(models.Model):
         help_text='Кусочков в порции или 1 для супа/напитка',
     )
     image_url = models.URLField(max_length=500, verbose_name='URL изображения')
-    composition = models.JSONField(
-        default=list,
-        blank=True,
-        verbose_name='Состав',
-        help_text='Список ингредиентов, например ["Лосось", "Сыр"]',
+    ingredients = models.ManyToManyField(
+        'Ingredient',
+        through='ProductIngredient',
+        related_name='products',
+        verbose_name='Ингредиенты',
     )
-    allergens = models.JSONField(
-        default=list,
+    allergens = models.ManyToManyField(
+        'Allergen',
         blank=True,
+        related_name='products',
         verbose_name='Аллергены',
-        help_text='Список аллергенов, например ["Рыба", "Глютен"]',
     )
     is_new = models.BooleanField(default=False, verbose_name='Новинка')
     benefit_badge = models.CharField(
@@ -183,6 +213,38 @@ class SetItem(models.Model):
 
     def __str__(self):
         return f'{self.set_product.name}: {self.included_product.name} × {self.quantity}'
+
+
+class ProductIngredient(models.Model):
+    """Связь продукт-ингредиент с сохранением порядка."""
+
+    product = models.ForeignKey(
+        'Product',
+        on_delete=models.CASCADE,
+        related_name='product_ingredients',
+        verbose_name='Продукт',
+    )
+    ingredient = models.ForeignKey(
+        'Ingredient',
+        on_delete=models.PROTECT,
+        related_name='product_ingredients',
+        verbose_name='Ингредиент',
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='Порядок')
+
+    class Meta:
+        ordering = ['sort_order']
+        verbose_name = 'Ингредиент в продукте'
+        verbose_name_plural = 'Ингредиенты в продуктах'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'ingredient'],
+                name='unique_product_ingredient',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.product.name} ← {self.ingredient.name}'
 
 
 class RestaurantSettings(models.Model):

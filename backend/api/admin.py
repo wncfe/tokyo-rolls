@@ -4,10 +4,13 @@ from unfold.admin import ModelAdmin, TabularInline
 from unfold.widgets import UnfoldAdminTextInputWidget, UnfoldAdminTextareaWidget
 
 from .models import (
+    Allergen,
     Category,
+    Ingredient,
     Order,
     OrderItem,
     Product,
+    ProductIngredient,
     PromoCode,
     RestaurantSettings,
     SetItem,
@@ -32,6 +35,12 @@ class OrderItemInline(TabularInline):
     model = OrderItem
     extra = 0
     readonly_fields = ('product', 'product_name', 'unit_price', 'quantity', 'weight_grams')
+
+
+class ProductIngredientInline(TabularInline):
+    model = ProductIngredient
+    extra = 1
+    autocomplete_fields = ['ingredient']
 
 
 # Переводим основные классы на Unfold (ModelAdmin)
@@ -68,9 +77,9 @@ class ProductAdmin(ModelAdmin):
     search_fields = ('name', 'slug', 'description')
     prepopulated_fields = {'slug': ('name',)}
     autocomplete_fields = ['category', 'subcategory']
-    inlines = [SetItemInline]
-    
-    
+    filter_horizontal = ['allergens']
+    inlines = [SetItemInline, ProductIngredientInline]
+
     formfield_overrides = {
         models.CharField: {'widget': UnfoldAdminTextInputWidget},
         models.TextField: {'widget': UnfoldAdminTextareaWidget},
@@ -118,4 +127,18 @@ class OrderAdmin(ModelAdmin):
 class UserProfileAdmin(ModelAdmin):
     list_display = ('user', 'phone', 'created_at')
     search_fields = ('user__username', 'phone')
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name',)
+    prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(Allergen)
+class AllergenAdmin(ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name',)
+    prepopulated_fields = {'slug': ('name',)}
 
