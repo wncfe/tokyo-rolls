@@ -59,7 +59,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {product.benefitBadge && (
               <div className="bg-rose-100 border border-rose-200/50 text-[#E11D48] text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
                 {product.benefitBadge.toLowerCase().includes('выгод') && (
-                  <span className="w-1.5 h-1.5 bg-[#E11D48] rounded-full animate-ping" />
+                  <span className="w-1.5 h-1.5 bg-[#E11D48] rounded-full animate-pulse" />
                 )}
                 {product.benefitBadge}
               </div>

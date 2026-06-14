@@ -1,4 +1,4 @@
-import { X, Plus, Minus, ShieldAlert } from 'lucide-react';
+import { X, Plus, Minus } from 'lucide-react';
 import { MenuItem, Set } from '../types';
 
 interface ProductModalProps {

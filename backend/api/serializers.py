@@ -200,19 +200,39 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         items_data = attrs.get('items', [])
         if not items_data:
             raise serializers.ValidationError({'items': 'Корзина пуста.'})
+
+        # Проверяем промокод сразу при валидации, чтобы вернуть понятную ошибку
+        promo_code_str = attrs.get('promo_code', '')
+        if promo_code_str and promo_code_str.strip():
+            try:
+                promo = PromoCode.objects.get(code__iexact=promo_code_str.strip(), is_active=True)
+                from django.utils import timezone
+                now = timezone.now()
+                if promo.valid_from and now < promo.valid_from:
+                    raise serializers.ValidationError({
+                        'promo_code': f'Промокод «{promo_code_str}» ещё не действует.'
+                    })
+                if promo.valid_until and now > promo.valid_until:
+                    raise serializers.ValidationError({
+                        'promo_code': f'Промокод «{promo_code_str}» истёк.'
+                    })
+            except PromoCode.DoesNotExist:
+                raise serializers.ValidationError({
+                    'promo_code': f'Промокод «{promo_code_str}» не найден или неактивен.'
+                })
+
         return attrs
 
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         promo_code_str = validated_data.pop('promo_code', '')
 
-        # Применить промокод
+        # Применить промокод (к этому моменту валидация уже прошла)
         promo = None
         discount_percent = 0
-        if promo_code_str:
-            promo = self._validate_promo(promo_code_str)
-            if promo:
-                discount_percent = promo.discount_percent
+        if promo_code_str and promo_code_str.strip():
+            promo = PromoCode.objects.get(code__iexact=promo_code_str.strip(), is_active=True)
+            discount_percent = promo.discount_percent
 
         # Привязать пользователя, если авторизован
         user = self.context['request'].user if self.context['request'].user.is_authenticated else None
@@ -227,7 +247,12 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             quantity = item_data['quantity']
 
             if product_slug:
-                product = Product.objects.get(slug=product_slug)
+                try:
+                    product = Product.objects.get(slug=product_slug, is_available=True)
+                except Product.DoesNotExist:
+                    raise serializers.ValidationError({
+                        'items': f'Продукт «{product_slug}» не найден или недоступен.'
+                    })
                 OrderItem.objects.create(
                     order=order,
                     product=product,
@@ -238,7 +263,12 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                 )
                 subtotal += product.price * quantity
             elif set_slug:
-                menu_set = Set.objects.get(slug=set_slug)
+                try:
+                    menu_set = Set.objects.get(slug=set_slug, is_available=True)
+                except Set.DoesNotExist:
+                    raise serializers.ValidationError({
+                        'items': f'Сет «{set_slug}» не найден или недоступен.'
+                    })
                 OrderItem.objects.create(
                     order=order,
                     set_menu=menu_set,

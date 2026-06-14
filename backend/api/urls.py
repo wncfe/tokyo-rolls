@@ -18,4 +18,5 @@ urlpatterns = [
     path('checkout/', views.CheckoutView.as_view(), name='checkout'),
     path('settings/', views.restaurant_settings, name='settings'),
     path('promo/validate/', views.validate_promo, name='promo-validate'),
+    path('dadata/suggest/', views.dadata_suggest, name='dadata-suggest'),
 ]

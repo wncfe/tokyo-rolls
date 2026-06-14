@@ -1,9 +1,6 @@
 import { User, LogOut, Truck, Store } from 'lucide-react';
-import { CartItem } from '../types';
 
 interface HeaderProps {
-  cart: CartItem[];
-  onOpenCart: () => void;
   user: { username: string } | null;
   onOpenAuth: () => void;
   onLogout: () => void;

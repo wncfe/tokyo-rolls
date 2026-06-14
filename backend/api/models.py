@@ -153,8 +153,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        # Новые сверху; sort_order — опциональный оверрайд для ручной сортировки
-        ordering = ['-created_at']
+        ordering = ['sort_order', '-created_at']
         verbose_name = 'Продукт'
         verbose_name_plural = 'Продукты'
 
@@ -219,8 +218,7 @@ class Set(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        # Новые сверху; sort_order — опциональный оверрайд для ручной сортировки
-        ordering = ['-created_at']
+        ordering = ['sort_order', '-created_at']
         verbose_name = 'Сет'
         verbose_name_plural = 'Сеты'
 

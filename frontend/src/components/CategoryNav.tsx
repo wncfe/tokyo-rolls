@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 interface CategoryNavProps {
   activeCategory: string;
   activeSubcategory?: string;
-  onSelectCategory: (category: any, subcategory?: any) => void;
+  onSelectCategory: (category: string, subcategory?: string) => void;
 }
 
 export default function CategoryNav({

@@ -1,3 +1,5 @@
+import os
+import requests
 from django.http import JsonResponse
 from django.db.models import Prefetch
 from rest_framework import viewsets, filters, generics, permissions, status
@@ -190,8 +192,53 @@ def validate_promo(request):
     serializer = PromoCodeValidateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     promo = serializer.get_promo()
+    if promo is None:
+        return Response(
+            {'detail': 'Промокод не найден, истёк или неактивен.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     return Response({
         'code': promo.code,
         'discount_percent': promo.discount_percent,
         'description': promo.description,
     })
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def dadata_suggest(request):
+    """Прокси для DaData Suggest API — ключ хранится только на сервере."""
+    query = request.data.get('query', '')
+    if not query or len(query.strip()) < 2:
+        return Response([], status=status.HTTP_200_OK)
+
+    api_key = os.environ.get('DADATA_API_KEY', '')
+    if not api_key:
+        return Response(
+            {'detail': 'DADATA_API_KEY not configured on server.'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    try:
+        resp = requests.post(
+            'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address',
+            json={
+                'query': query.strip(),
+                'count': 10,
+                'locations': [{'city': 'Пермь'}],
+            },
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Token {api_key}',
+            },
+            timeout=5,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return Response(data.get('suggestions', []), status=status.HTTP_200_OK)
+    except requests.RequestException as e:
+        return Response(
+            {'detail': f'DaData request failed: {str(e)}'},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )

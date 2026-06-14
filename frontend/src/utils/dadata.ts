@@ -19,53 +19,32 @@ export interface DaDataSuggestion {
   };
 }
 
-interface DaDataResponse {
-  suggestions: DaDataSuggestion[];
-}
-
-const DADATA_URL =
-  'https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address';
-
-const API_KEY = import.meta.env.VITE_DADATA_API_KEY as string | undefined;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 /**
- * Получить подсказки по адресу через DaData Suggest API.
- * ВАЖНО: ключ передаётся с заголовком Authorization: Token {key}.
- * Приоритет подсказок — город Пермь.
+ * Получить подсказки по адресу через наш backend-прокси.
+ * Ключ DaData хранится только на сервере и никогда не попадает в браузер.
  */
 export async function suggestAddress(
   query: string,
 ): Promise<DaDataSuggestion[]> {
   if (!query || query.trim().length < 2) return [];
-  if (!API_KEY) {
-    console.warn('VITE_DADATA_API_KEY не задан — подсказки DaData недоступны.');
-    return [];
-  }
 
   try {
-    const res = await fetch(DADATA_URL, {
+    const res = await fetch(`${API_BASE_URL}/dadata/suggest/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `Token ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        query: query.trim(),
-        count: 10,
-        locations: [{ city: 'Пермь' }],
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query.trim() }),
     });
 
     if (!res.ok) {
-      console.error('DaData error', res.status);
+      console.error('DaData proxy error', res.status);
       return [];
     }
 
-    const data: DaDataResponse = await res.json();
-    return data.suggestions ?? [];
+    return res.json();
   } catch (err) {
-    console.error('DaData network error', err);
+    console.error('DaData proxy network error', err);
     return [];
   }
 }
