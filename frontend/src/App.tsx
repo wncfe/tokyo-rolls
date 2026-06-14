@@ -80,6 +80,7 @@ export default function App() {
   const [activeSubcategory, setActiveSubcategory] = useState<'firm' | 'baked' | 'free' | 'warm' | 'classic'>('firm');
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [orderType, setOrderType] = useState<'delivery' | 'pickup'>('delivery');
 
   // Ref to block scroll-driven category detection during programmatic (nav-click) scrolling
   const isProgrammaticScrolling = useRef(false);
@@ -107,6 +108,7 @@ export default function App() {
     suburban_delivery_fee: 100,
     delivery_time_min: 45,
     delivery_time_max: 60,
+    restaurant_address: '',
   });
 
   // Dynamic restaurant open/close status
@@ -306,6 +308,8 @@ export default function App() {
         user={user ? { username: user.username } : null}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onLogout={handleLogout}
+        orderType={orderType}
+        onOrderTypeChange={setOrderType}
       />
 
       {/* CATEGORIES NAV */}
@@ -690,11 +694,16 @@ export default function App() {
                 </span>
               )}
             </div>
-            {cart.length > 0 ? (
-              <span className="font-mono text-sm tracking-tight leading-none pt-0.5">
-                {cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0).toLocaleString('ru-RU')} ₽
-              </span>
-            ) : (
+            {cart.length > 0 ? (() => {
+              const floatingSubtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+              const floatingDiscount = orderType === 'pickup' ? Math.round(floatingSubtotal * 0.1) : 0;
+              const floatingTotal = floatingSubtotal - floatingDiscount;
+              return (
+                <span className="font-mono text-sm tracking-tight leading-none pt-0.5">
+                  {floatingTotal.toLocaleString('ru-RU')} ₽
+                </span>
+              );
+            })() : (
               <span className="text-xs font-medium tracking-tight">Корзина</span>
             )}
           </button>
@@ -708,6 +717,8 @@ export default function App() {
         cart={cart}
         isOpenStatus={isOpen}
         settings={restaurantSettings}
+        orderType={orderType}
+        onOrderTypeChange={setOrderType}
         onAddToCart={(id) => {
           const prod = findProductById(id);
           if (prod) handleAddToCart(prod);

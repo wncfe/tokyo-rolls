@@ -187,12 +187,13 @@ class OrderWriteSerializer(serializers.ModelSerializer):
     """Создание заказа из корзины."""
     items = OrderItemWriteSerializer(many=True)
     promo_code = serializers.CharField(max_length=32, required=False, allow_blank=True, write_only=True)
+    order_type = serializers.ChoiceField(choices=[('delivery', 'Доставка'), ('pickup', 'Самовывоз')], default='delivery')
 
     class Meta:
         model = Order
         fields = [
             'customer_name', 'customer_phone', 'delivery_address',
-            'comment', 'promo_code', 'items',
+            'comment', 'promo_code', 'order_type', 'items',
         ]
 
     def validate(self, attrs):
@@ -249,16 +250,23 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                 subtotal += menu_set.price * quantity
 
         # Расчёт скидки и доставки
-        discount_amount = int(subtotal * discount_percent / 100) if discount_percent else 0
-        settings = RestaurantSettings.get_solo()
-        delivery_fee = 0 if subtotal - discount_amount >= settings.free_delivery_from else settings.suburban_delivery_fee
+        order_type = validated_data.get('order_type', 'delivery')
+        pickup_discount = int(subtotal * 10 / 100) if order_type == 'pickup' else 0
+        promo_discount = int(subtotal * discount_percent / 100) if discount_percent else 0
+        discount_amount = pickup_discount + promo_discount
+        settings_obj = RestaurantSettings.get_solo()
+        if order_type == 'pickup':
+            delivery_fee = 0
+        else:
+            delivery_fee = 0 if subtotal - discount_amount >= settings_obj.free_delivery_from else settings_obj.suburban_delivery_fee
 
         order.subtotal = subtotal
         order.discount_amount = discount_amount
         order.delivery_fee = delivery_fee
         order.total = subtotal - discount_amount + delivery_fee
         order.promo_code = promo
-        order.save(update_fields=['subtotal', 'discount_amount', 'delivery_fee', 'total', 'promo_code'])
+        order.order_type = order_type
+        order.save(update_fields=['subtotal', 'discount_amount', 'delivery_fee', 'total', 'promo_code', 'order_type'])
 
         return order
 
@@ -290,8 +298,9 @@ class OrderReadSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'id', 'status', 'customer_name', 'customer_phone',
-            'delivery_address', 'comment', 'subtotal', 'discount_amount',
-            'delivery_fee', 'total', 'created_at', 'items',
+            'delivery_address', 'comment', 'order_type',
+            'subtotal', 'discount_amount', 'delivery_fee', 'total',
+            'created_at', 'items',
         ]
 
 
@@ -303,7 +312,7 @@ class RestaurantSettingsSerializer(serializers.ModelSerializer):
         fields = [
             'opening_hour', 'closing_hour', 'min_order_amount',
             'free_delivery_from', 'suburban_delivery_fee',
-            'delivery_time_min', 'delivery_time_max',
+            'delivery_time_min', 'delivery_time_max', 'restaurant_address',
         ]
 
 

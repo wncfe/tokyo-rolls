@@ -359,6 +359,11 @@ class RestaurantSettings(models.Model):
         default=60,
         verbose_name='Макс. время доставки, мин',
     )
+    restaurant_address = models.TextField(
+        blank=True,
+        verbose_name='Адрес ресторана',
+        help_text='Отображается при выборе самовывоза',
+    )
 
     class Meta:
         verbose_name = 'Настройки ресторана'
@@ -445,6 +450,12 @@ class Order(models.Model):
     customer_name = models.CharField(max_length=100, blank=True, verbose_name='Имя')
     customer_phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон')
     delivery_address = models.TextField(blank=True, verbose_name='Адрес доставки')
+    order_type = models.CharField(
+        max_length=10,
+        choices=[('delivery', 'Доставка'), ('pickup', 'Самовывоз')],
+        default='delivery',
+        verbose_name='Тип заказа',
+    )
     comment = models.TextField(blank=True, verbose_name='Комментарий')
     promo_code = models.ForeignKey(
         PromoCode,

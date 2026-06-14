@@ -1,4 +1,4 @@
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, Store } from 'lucide-react';
 import { CartItem, MenuItem, RestaurantSettings } from '../types';
 
 interface CartDrawerProps {
@@ -10,6 +10,8 @@ interface CartDrawerProps {
   onClearItem: (itemId: string) => void;
   isOpenStatus: boolean;
   settings: RestaurantSettings;
+  orderType: 'delivery' | 'pickup';
+  onOrderTypeChange: (type: 'delivery' | 'pickup') => void;
 }
 
 export default function CartDrawer({
@@ -21,16 +23,20 @@ export default function CartDrawer({
   onClearItem,
   isOpenStatus,
   settings,
+  orderType,
+  onOrderTypeChange,
 }: CartDrawerProps) {
   if (!isOpen) return null;
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const totalItems = cart.reduce((count, item) => count + item.quantity, 0);
+  const pickupDiscount = orderType === 'pickup' ? Math.round(subtotal * 0.1) : 0;
+  const totalPrice = subtotal - pickupDiscount;
 
   const handleCheckout = () => {
-    // Collect JSON schema of the active order for demonstrative integration
     const orderData = {
       orderTimestamp: new Date().toISOString(),
+      orderType: orderType,
       items: cart.map(item => ({
         id: item.product.id,
         name: item.product.name,
@@ -39,6 +45,8 @@ export default function CartDrawer({
         totalItemPrice: item.product.price * item.quantity,
         weightGrams: item.product.weight * item.quantity,
       })),
+      subtotal: subtotal,
+      pickupDiscount: pickupDiscount,
       totalPrice: totalPrice,
       totalCount: totalItems,
     };
@@ -78,6 +86,39 @@ export default function CartDrawer({
           >
             <X className="w-4.5 h-4.5" />
           </button>
+        </div>
+
+        {/* ORDER TYPE TOGGLE */}
+        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-0.5 select-none">
+            <button
+              onClick={() => onOrderTypeChange('delivery')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
+                orderType === 'delivery'
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Truck className="w-4 h-4 shrink-0" />
+              <span>Доставка</span>
+            </button>
+            <button
+              onClick={() => onOrderTypeChange('pickup')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
+                orderType === 'pickup'
+                  ? 'bg-[#E11D48] text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <Store className="w-4 h-4 shrink-0" />
+              <span>Самовывоз –10%</span>
+            </button>
+          </div>
+          {orderType === 'pickup' && settings.restaurant_address && (
+            <p className="mt-2 text-[10px] text-slate-500 text-center font-medium">
+              🥡 Самовывоз: {settings.restaurant_address}
+            </p>
+          )}
         </div>
 
         {/* CART LIST OR EMPTY ELEMENT */}
@@ -168,8 +209,8 @@ export default function CartDrawer({
 
         {/* FOOTER */}
         {cart.length > 0 && (() => {
-          const minOrder = settings.min_order_amount;
-          const isTooLow = totalPrice < minOrder;
+          const minOrder = orderType === 'pickup' ? 1 : settings.min_order_amount;
+          const isTooLow = orderType === 'delivery' && totalPrice < minOrder;
           const canCheckout = isOpenStatus && !isTooLow;
 
           let btnText = "Оформить заказ";
@@ -198,6 +239,11 @@ export default function CartDrawer({
                   <span className="font-bold flex items-center gap-1.5">🍅 Минимальная сумма заказа</span>
                   <span>Добавь в корзину блюд еще на <strong className="font-black">{(minOrder - totalPrice).toLocaleString('ru-RU')} ₽</strong> для возможности доставки по городу.</span>
                 </div>
+              ) : orderType === 'pickup' ? (
+                <div className="mb-4 bg-violet-50 border border-violet-100/70 p-3.5 rounded-2xl text-xs text-violet-800 flex flex-col gap-0.5 animate-fadeIn">
+                  <span className="font-bold text-violet-900">🥡 Самовывоз из ресторана</span>
+                  <p className="text-[11px] text-violet-700 leading-tight">Забери заказ сам — скидка 10% на всё меню уже учтена в итоговой сумме.</p>
+                </div>
               ) : (
                 <div className="mb-4 bg-emerald-50 border border-emerald-100/70 p-3.5 rounded-2xl text-xs text-emerald-800 flex flex-col gap-0.5 animate-fadeIn">
                   <span className="font-bold text-emerald-900">✨ Доставка бесплатная!</span>
@@ -211,10 +257,18 @@ export default function CartDrawer({
                   <span>Итого товаров</span>
                   <span className="font-mono text-slate-600 font-medium">{totalItems} шт</span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-slate-400 select-none">
-                  <span>Доставка по Перми</span>
-                  <span className="text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[10px]">БЕСПЛАТНО</span>
-                </div>
+                {orderType === 'delivery' && (
+                  <div className="flex items-center justify-between text-xs text-slate-400 select-none">
+                    <span>Доставка по Перми</span>
+                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[10px]">БЕСПЛАТНО</span>
+                  </div>
+                )}
+                {orderType === 'pickup' && pickupDiscount > 0 && (
+                  <div className="flex items-center justify-between text-xs text-slate-400 select-none">
+                    <span>Скидка за самовывоз (10%)</span>
+                    <span className="text-violet-700 bg-violet-50 border border-violet-100/50 px-2 py-0.5 rounded-md font-bold font-mono text-[10px]">−{pickupDiscount.toLocaleString('ru-RU')} ₽</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                   <span className="text-slate-900 text-sm font-bold select-none">Общая сумма:</span>
                   <span className="text-[#E11D48] text-xl font-mono font-black tracking-tight">

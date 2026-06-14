@@ -1,4 +1,4 @@
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Truck, Store } from 'lucide-react';
 import { CartItem } from '../types';
 
 interface HeaderProps {
@@ -7,9 +7,11 @@ interface HeaderProps {
   user: { username: string } | null;
   onOpenAuth: () => void;
   onLogout: () => void;
+  orderType: 'delivery' | 'pickup';
+  onOrderTypeChange: (type: 'delivery' | 'pickup') => void;
 }
 
-export default function Header({ user, onOpenAuth, onLogout }: HeaderProps) {
+export default function Header({ user, onOpenAuth, onLogout, orderType, onOrderTypeChange }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 md:px-8 py-3.5 transition-all duration-300">
@@ -35,6 +37,32 @@ export default function Header({ user, onOpenAuth, onLogout }: HeaderProps) {
 
         {/* CONTROLS */}
         <div className="flex items-center gap-2 md:gap-4">
+
+          {/* ORDER TYPE TOGGLE */}
+          <div className="flex items-center bg-slate-100 border border-slate-200 rounded-xl p-0.5 select-none">
+            <button
+              onClick={() => onOrderTypeChange('delivery')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
+                orderType === 'delivery'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                  : 'text-slate-500 hover:text-slate-700 border border-transparent'
+              }`}
+            >
+              <Truck className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Доставка</span>
+            </button>
+            <button
+              onClick={() => onOrderTypeChange('pickup')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
+                orderType === 'pickup'
+                  ? 'bg-white text-[#E11D48] shadow-sm border border-rose-200'
+                  : 'text-slate-500 hover:text-slate-700 border border-transparent'
+              }`}
+            >
+              <Store className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Самовывоз</span>
+            </button>
+          </div>
           
           {/* AUTH SECTION */}
           {user ? (

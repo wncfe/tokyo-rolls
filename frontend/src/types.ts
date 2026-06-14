@@ -76,15 +76,17 @@ export interface RestaurantSettings {
   suburban_delivery_fee: number;
   delivery_time_min: number;
   delivery_time_max: number;
+  restaurant_address: string;
 }
 
 // Checkout request
 export interface CheckoutData {
   customer_name: string;
   customer_phone: string;
-  delivery_address: string;
+  delivery_address?: string;
   comment: string;
   promo_code: string;
+  order_type: 'delivery' | 'pickup';
   items: CheckoutItem[];
 }
 
