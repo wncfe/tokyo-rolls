@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, LogIn, UserPlus } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 import { LoginData, RegisterData } from '../types';
 
 interface AuthModalProps {
@@ -102,23 +102,16 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
   return (
     <div
       onClick={onClose}
+      style={{ cursor: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'%3E%3Ccircle cx=\'16\' cy=\'16\' r=\'14\' fill=\'black\'/%3E%3Cpath d=\'M11 11 L21 21 M21 11 L11 21\' stroke=\'white\' stroke-width=\'3\' stroke-linecap=\'round\'/%3E%3C/svg%3E"), auto' }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300"
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        style={{ cursor: 'default' }}
         className="relative w-full max-w-md bg-white border border-slate-200/80 rounded-3xl shadow-2xl overflow-hidden animate-scaleUp"
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer select-none border border-slate-200/40"
-          title="Закрыть"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 pr-12">
+        <div className="flex border-b border-slate-200">
           <button
             onClick={() => handleTabSwitch('login')}
             className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-colors cursor-pointer select-none ${
