@@ -30,8 +30,6 @@ export default function CartDrawer({
   onOrderTypeChange,
 }: CartDrawerProps) {
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [promoData, setPromoData] = useState<{ discount_percent: number; description: string } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
@@ -77,8 +75,8 @@ export default function CartDrawer({
       });
 
       const orderData: CheckoutData = {
-        customer_name: customerName.trim(),
-        customer_phone: customerPhone.trim(),
+        customer_name: '',
+        customer_phone: '',
         delivery_address: orderType === 'delivery' ? deliveryAddress : undefined,
         comment: '',
         promo_code: promoData ? promoCode.trim() : '',
@@ -255,9 +253,7 @@ export default function CartDrawer({
           const effectiveTotal = totalPrice - promoDiscountAmount;
           const isTooLow = effectiveTotal < minOrder;
           const isAddressEmpty = orderType === 'delivery' && deliveryAddress.trim().length === 0;
-          const isNameEmpty = customerName.trim().length === 0;
-          const isPhoneEmpty = customerPhone.trim().length < 7;
-          const canCheckout = isOpenStatus && !isTooLow && !isAddressEmpty && !isNameEmpty && !isPhoneEmpty && !isSubmitting;
+          const canCheckout = isOpenStatus && !isTooLow && !isAddressEmpty && !isSubmitting;
 
           let btnText = "Оформить заказ";
           let btnClasses = "w-full py-4 font-bold text-xs md:text-sm uppercase rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 border border-transparent select-none";
@@ -270,12 +266,6 @@ export default function CartDrawer({
             btnClasses += " bg-orange-100 border border-orange-200 text-orange-600 cursor-not-allowed opacity-90";
           } else if (isTooLow) {
             btnText = `Минималка ${minOrder} ₽ • Ещё ${minOrder - effectiveTotal} ₽`;
-            btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
-          } else if (isNameEmpty) {
-            btnText = "Укажите имя";
-            btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
-          } else if (isPhoneEmpty) {
-            btnText = "Укажите телефон";
             btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
           } else if (isAddressEmpty) {
             btnText = "Укажите адрес доставки";
@@ -310,24 +300,6 @@ export default function CartDrawer({
                       <span>{orderError}</span>
                     </div>
                   )}
-
-                  {/* Customer name / phone inputs */}
-                  <div className="space-y-3 mb-4">
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Ваше имя"
-                      className="w-full px-4 py-3 text-xs font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all"
-                    />
-                    <input
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      placeholder="Телефон (например +7 999 123-45-67)"
-                      className="w-full px-4 py-3 text-xs font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all"
-                    />
-                  </div>
 
                   {/* Conditional alerts */}
                   {!isOpenStatus ? (
@@ -374,7 +346,7 @@ export default function CartDrawer({
                         type="text"
                         value={promoCode}
                         onChange={(e) => { setPromoCode(e.target.value); setPromoError(null); }}
-                        placeholder="Промокод (например TOKYO10)"
+                        placeholder="Промокод"
                         className="flex-1 px-3.5 py-2.5 text-xs font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all uppercase"
                       />
                       <button
@@ -391,7 +363,7 @@ export default function CartDrawer({
                     )}
                     {promoData && (
                       <p className="mt-1.5 text-[10px] text-emerald-600 font-medium">
-                        ✅ {promoData.description || `Промокод на ${promoData.discount_percent}%`} применён!
+                        ✅ Промокод применён!
                       </p>
                     )}
                   </div>

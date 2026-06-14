@@ -150,7 +150,18 @@ function authHeaders(): Record<string, string> {
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new Error(body.detail || response.statusText);
+    // DRF can return errors in two formats:
+    // 1. Non-field: { detail: "message" }
+    // 2. Field-level: { field_name: ["message1", "message2"] }
+    if (body.detail) {
+      throw new Error(String(body.detail));
+    }
+    // Extract first message from field-level errors
+    const messages = Object.values(body).flat();
+    if (messages.length > 0) {
+      throw new Error(String(messages[0]));
+    }
+    throw new Error(response.statusText);
   }
   return response.json();
 }
