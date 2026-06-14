@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, Store } from 'lucide-react';
 import { CartItem, MenuItem, RestaurantSettings } from '../types';
+import DadataAddressInput from './DadataAddressInput';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -26,6 +28,8 @@ export default function CartDrawer({
   orderType,
   onOrderTypeChange,
 }: CartDrawerProps) {
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+
   if (!isOpen) return null;
 
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
@@ -37,6 +41,7 @@ export default function CartDrawer({
     const orderData = {
       orderTimestamp: new Date().toISOString(),
       orderType: orderType,
+      deliveryAddress: deliveryAddress,
       items: cart.map(item => ({
         id: item.product.id,
         name: item.product.name,
@@ -209,9 +214,10 @@ export default function CartDrawer({
 
         {/* FOOTER */}
         {cart.length > 0 && (() => {
-          const minOrder = orderType === 'pickup' ? 1 : settings.min_order_amount;
-          const isTooLow = orderType === 'delivery' && totalPrice < minOrder;
-          const canCheckout = isOpenStatus && !isTooLow;
+          const minOrder = settings.min_order_amount;
+          const isTooLow = totalPrice < minOrder;
+          const isAddressEmpty = orderType === 'delivery' && deliveryAddress.trim().length === 0;
+          const canCheckout = isOpenStatus && !isTooLow && !isAddressEmpty;
 
           let btnText = "Оформить заказ";
           let btnClasses = "w-full py-4 font-bold text-xs md:text-sm uppercase rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 border border-transparent select-none";
@@ -221,6 +227,9 @@ export default function CartDrawer({
             btnClasses += " bg-orange-100 border border-orange-200 text-orange-600 cursor-not-allowed opacity-90";
           } else if (isTooLow) {
             btnText = `Минималка ${minOrder} ₽ • Ещё ${minOrder - totalPrice} ₽`;
+            btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
+          } else if (isAddressEmpty) {
+            btnText = "Укажите адрес доставки";
             btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
           } else {
             btnClasses += " bg-slate-950 hover:bg-slate-800 text-white shadow-xl hover:shadow-slate-200 active:scale-98 cursor-pointer";
@@ -237,7 +246,12 @@ export default function CartDrawer({
               ) : isTooLow ? (
                 <div className="mb-4 bg-rose-50 border border-rose-100 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-[#E11D48] select-none animate-fadeIn">
                   <span className="font-bold flex items-center gap-1.5">🍅 Минимальная сумма заказа</span>
-                  <span>Добавь в корзину блюд еще на <strong className="font-black">{(minOrder - totalPrice).toLocaleString('ru-RU')} ₽</strong> для возможности доставки по городу.</span>
+                  <span>Добавь в корзину блюд еще на <strong className="font-black">{(minOrder - totalPrice).toLocaleString('ru-RU')} ₽</strong> для оформления заказа.</span>
+                </div>
+              ) : isAddressEmpty ? (
+                <div className="mb-4 bg-amber-50 border border-amber-100/70 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-amber-800 select-none animate-fadeIn">
+                  <span className="font-bold flex items-center gap-1.5">📍 Укажите адрес доставки</span>
+                  <span>Начните вводить улицу и дом — мы подскажем точный адрес для курьера.</span>
                 </div>
               ) : orderType === 'pickup' ? (
                 <div className="mb-4 bg-violet-50 border border-violet-100/70 p-3.5 rounded-2xl text-xs text-violet-800 flex flex-col gap-0.5 animate-fadeIn">
@@ -276,6 +290,16 @@ export default function CartDrawer({
                   </span>
                 </div>
               </div>
+
+              {/* Delivery Address Input (only for delivery) */}
+              {orderType === 'delivery' && (
+                <div className="mb-4">
+                  <DadataAddressInput
+                    value={deliveryAddress}
+                    onChange={setDeliveryAddress}
+                  />
+                </div>
+              )}
 
               {/* Checkout Action Button */}
               <button
