@@ -19,7 +19,7 @@ export default function HeroBanner({ isOpen, settings }: HeroBannerProps) {
         <div className="max-w-2xl text-center md:text-left">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-50 border border-rose-100 rounded-full text-xs font-semibold text-[#E11D48] mb-4 select-none uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 fill-[#E11D48]" />
-            Премиальная доставка в Токио
+            Премиальная доставка в Перми
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] mb-4 text-slate-900">

@@ -95,6 +95,7 @@ export interface RestaurantSettings {
   delivery_time_min: number;
   delivery_time_max: number;
   restaurant_address: string;
+  pickup_discount_percent: number;
   is_open: boolean;  // вычисляется сервером по Asia/Yekaterinburg (Пермь)
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface CategoryNavProps {
   activeCategory: string;
@@ -29,37 +29,16 @@ export default function CategoryNav({
     { id: 'classic', name: '🥑 Классические' },
   ];
 
-  const handleScrollTo = (elementId: string, nextCategory: string) => {
-    const element = document.getElementById(elementId);
-    if (element) {
-      // Find sticky offset dynamically based on what the category will be after click
-      // header (sticky is 72px) + CategoryNav (runs smoothly between ~56px collapsed and ~96px expanded)
-      const navHeaderHeight = 72;
-      const navBarHeight = nextCategory === 'rolls' ? 96 : 56;
-      const offset = navHeaderHeight + navBarHeight;
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-    }
-  };
-
   const handleMainCategoryClick = (catId: string) => {
     if (catId === 'rolls') {
       onSelectCategory('rolls', 'firm');
-      handleScrollTo('category-rolls-firm', 'rolls');
     } else {
       onSelectCategory(catId);
-      handleScrollTo(`category-${catId}`, catId);
     }
   };
 
   const handleSubCategoryClick = (subId: 'firm' | 'baked' | 'free' | 'warm' | 'classic') => {
     onSelectCategory('rolls', subId);
-    handleScrollTo(`category-rolls-${subId}`, 'rolls');
   };
 
   return (

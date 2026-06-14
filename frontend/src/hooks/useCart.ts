@@ -55,10 +55,14 @@ export function useCart() {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   }, []);
 
+  const clearCart = useCallback(() => {
+    setCart([]);
+  }, []);
+
   const getQuantity = useCallback(
     (productId: string) => cart.find((i) => i.product.id === productId)?.quantity ?? 0,
     [cart],
   );
 
-  return { cart, addToCart, removeFromCart, clearItem, getQuantity };
+  return { cart, addToCart, removeFromCart, clearItem, clearCart, getQuantity };
 }

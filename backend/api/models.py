@@ -364,6 +364,11 @@ class RestaurantSettings(models.Model):
         verbose_name='Адрес ресторана',
         help_text='Отображается при выборе самовывоза',
     )
+    pickup_discount_percent = models.PositiveSmallIntegerField(
+        default=10,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name='Скидка за самовывоз, %',
+    )
 
     class Meta:
         verbose_name = 'Настройки ресторана'
@@ -375,9 +380,7 @@ class RestaurantSettings(models.Model):
     @classmethod
     def get_solo(cls):
         """Singleton-паттерн: всегда одна запись настроек, без привязки к pk."""
-        obj = cls.objects.first()
-        if obj is None:
-            obj = cls.objects.create()
+        obj, _ = cls.objects.get_or_create(defaults={})
         return obj
 
 
@@ -453,12 +456,17 @@ class Address(models.Model):
         return f'{self.full_address}{" (основной)" if self.is_default else ""}'
 
     def save(self, *args, **kwargs):
-        if self.is_default:
-            Address.objects.filter(user=self.user, is_default=True).update(is_default=False)
-        # If this is the first address, make it default
-        if not self.pk and not Address.objects.filter(user=self.user).exists():
-            self.is_default = True
-        super().save(*args, **kwargs)
+        from django.db import transaction
+        with transaction.atomic():
+            if self.is_default:
+                # Блокируем адреса пользователя, чтобы избежать race condition
+                Address.objects.select_for_update().filter(
+                    user=self.user, is_default=True
+                ).update(is_default=False)
+            # If this is the first address, make it default
+            if not self.pk and not Address.objects.filter(user=self.user).exists():
+                self.is_default = True
+            super().save(*args, **kwargs)
 
 
 class Order(models.Model):

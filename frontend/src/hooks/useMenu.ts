@@ -15,6 +15,7 @@ export function useMenu() {
     delivery_time_min: 45,
     delivery_time_max: 60,
     restaurant_address: '',
+    pickup_discount_percent: 10,
     is_open: true,
   });
 

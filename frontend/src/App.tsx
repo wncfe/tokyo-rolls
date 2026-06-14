@@ -17,7 +17,7 @@ import { useRestaurantStatus } from "./hooks/useRestaurantStatus";
 
 export default function App() {
   // Hooks
-  const { cart, addToCart, removeFromCart, clearItem, getQuantity } = useCart();
+  const { cart, addToCart, removeFromCart, clearItem, clearCart, getQuantity } = useCart();
   const { user, addresses, loginWithPhone, verifyPhoneCode, logout, refreshAddresses } = useAuth();
   const {
     menuData,
@@ -145,6 +145,7 @@ export default function App() {
         }}
         onRemoveFromCart={removeFromCart}
         onClearItem={clearItem}
+        onClearCart={clearCart}
       />
       <ProductModal
         isOpen={selectedProduct !== null}

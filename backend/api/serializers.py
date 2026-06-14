@@ -328,19 +328,27 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
         # Расчёт скидки и доставки
         order_type = validated_data.get('order_type', 'delivery')
-        pickup_discount = int(subtotal * 10 / 100) if order_type == 'pickup' else 0
+        settings_obj = RestaurantSettings.get_solo()
+        pickup_discount = int(subtotal * settings_obj.pickup_discount_percent / 100) if order_type == 'pickup' else 0
         promo_discount = int(subtotal * discount_percent / 100) if discount_percent else 0
         discount_amount = pickup_discount + promo_discount
-        settings_obj = RestaurantSettings.get_solo()
         if order_type == 'pickup':
             delivery_fee = 0
         else:
             delivery_fee = 0 if subtotal - discount_amount >= settings_obj.free_delivery_from else settings_obj.suburban_delivery_fee
 
+        # Проверка минимальной суммы заказа (защита от прямых API-запросов)
+        effective_total = subtotal - discount_amount + delivery_fee
+        if effective_total < settings_obj.min_order_amount:
+            raise serializers.ValidationError({
+                'items': f'Минимальная сумма заказа: {settings_obj.min_order_amount} ₽. '
+                         f'Сейчас: {effective_total} ₽, добавьте ещё {settings_obj.min_order_amount - effective_total} ₽.'
+            })
+
         order.subtotal = subtotal
         order.discount_amount = discount_amount
         order.delivery_fee = delivery_fee
-        order.total = subtotal - discount_amount + delivery_fee
+        order.total = effective_total
         order.promo_code = promo
         order.order_type = order_type
         order.save(update_fields=['subtotal', 'discount_amount', 'delivery_fee', 'total', 'promo_code', 'order_type'])
@@ -392,6 +400,7 @@ class RestaurantSettingsSerializer(serializers.ModelSerializer):
             'opening_hour', 'closing_hour', 'min_order_amount',
             'free_delivery_from', 'suburban_delivery_fee',
             'delivery_time_min', 'delivery_time_max', 'restaurant_address',
+            'pickup_discount_percent',
             'is_open',
         ]
 
