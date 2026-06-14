@@ -410,7 +410,7 @@ export default function App() {
             <span className="text-slate-400 font-mono text-xs select-none">ЛУЧШИЙ ВЫБОР ДЛЯ КОМПАНИИ</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {getProductsByCategory('sets').map((product) => (
               <ProductCard
                 key={product.id}
@@ -439,7 +439,7 @@ export default function App() {
               <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
               Большие роллы
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {getProductsByCategory('rolls', 'firm').map((product) => (
                 <ProductCard
                    key={product.id}
@@ -459,7 +459,7 @@ export default function App() {
               <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
               Запеченные роллы
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {getProductsByCategory('rolls', 'baked').map((product) => (
                 <ProductCard
                    key={product.id}
@@ -479,7 +479,7 @@ export default function App() {
               <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
               Фри роллы
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {getProductsByCategory('rolls', 'free').map((product) => (
                 <ProductCard
                    key={product.id}
@@ -499,7 +499,7 @@ export default function App() {
               <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
               Теплые и темпура роллы
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {getProductsByCategory('rolls', 'warm').map((product) => (
                 <ProductCard
                    key={product.id}
@@ -519,7 +519,7 @@ export default function App() {
               <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
               Классические роллы
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {getProductsByCategory('rolls', 'classic').map((product) => (
                 <ProductCard
                    key={product.id}
@@ -544,7 +544,7 @@ export default function App() {
             <span className="text-slate-400 font-mono text-xs select-none">СВЕЖАЯ КЛАССИКА С ОХЛАЖДЕННОЙ РЫБОЙ</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {getProductsByCategory('sushi').map((product) => (
               <ProductCard
                 key={product.id}
@@ -567,7 +567,7 @@ export default function App() {
             <span className="text-slate-400 font-mono text-xs select-none">СВЕЖЕСТЬ В КАЖДОМ КУСОЧКЕ</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {getProductsByCategory('pokesalads').map((product) => (
               <ProductCard
                 key={product.id}
@@ -590,7 +590,7 @@ export default function App() {
             <span className="text-slate-400 font-mono text-xs select-none">СЫТНЫЕ РЕШЕНИЯ И ХРУСТЯЩАЯ СВЕЖЕСТЬ</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {getProductsByCategory('hot').map((product) => (
               <ProductCard
                 key={product.id}
@@ -613,7 +613,7 @@ export default function App() {
             <span className="text-slate-400 font-mono text-xs select-none">ЛЕГКОЕ И СЛАДКОЕ ЗАВЕРШЕНИЕ</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {getProductsByCategory('desserts').map((product) => (
               <ProductCard
                 key={product.id}
@@ -636,7 +636,7 @@ export default function App() {
             <span className="text-slate-400 font-mono text-xs select-none">НАПИТКИ, СОУСЫ И ПРОЧЕЕ</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {getProductsByCategory('dop').map((product) => (
               <ProductCard
                 key={product.id}
@@ -652,22 +652,28 @@ export default function App() {
 
       </main>
 
-      {/* FLOATING ACTION BOTTOM CART BUTTON (Mainly for outstanding mobile experiences) */}
-      {cart.length > 0 && !isCartOpen && (
-        <div className="fixed bottom-4 right-4 z-40 sm:hidden animate-scaleUp">
+      {/* FLOATING ACTION BOTTOM CART BUTTON — always visible on all screens */}
+      {!isCartOpen && (
+        <div className="fixed bottom-4 right-4 z-40 animate-scaleUp">
           <button
             onClick={() => setIsCartOpen(true)}
             className="flex items-center gap-3 bg-slate-950 border border-slate-800 text-white rounded-full shadow-2xl h-13 px-4 hover:bg-slate-900 active:scale-95 transition-all cursor-pointer font-bold select-none text-sm"
           >
             <div className="relative">
               <ShoppingBag className="w-5 h-5 text-[#E11D48] stroke-[2.2]" />
-              <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-slate-950">
-                {cart.reduce((sum, item) => sum + item.quantity, 0)}
-              </span>
+              {cart.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-slate-950">
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                </span>
+              )}
             </div>
-            <span className="font-mono text-sm tracking-tight leading-none pt-0.5">
-              {cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0).toLocaleString('ru-RU')} ₽
-            </span>
+            {cart.length > 0 ? (
+              <span className="font-mono text-sm tracking-tight leading-none pt-0.5">
+                {cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0).toLocaleString('ru-RU')} ₽
+              </span>
+            ) : (
+              <span className="text-xs font-medium tracking-tight">Корзина</span>
+            )}
           </button>
         </div>
       )}

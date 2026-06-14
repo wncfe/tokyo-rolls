@@ -1,4 +1,4 @@
-import { ShoppingBag, User, LogOut } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { CartItem } from '../types';
 
 interface HeaderProps {
@@ -9,9 +9,7 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-export default function Header({ cart, onOpenCart, user, onOpenAuth, onLogout }: HeaderProps) {
-  const totalItems = cart.reduce((count, item) => count + item.quantity, 0);
-  const totalPrice = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+export default function Header({ user, onOpenAuth, onLogout }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 md:px-8 py-3.5 transition-all duration-300">
@@ -62,34 +60,6 @@ export default function Header({ cart, onOpenCart, user, onOpenAuth, onLogout }:
               <span className="hidden sm:inline">Войти</span>
             </button>
           )}
-
-          {/* CART TRIGGER BUTTON */}
-          <button
-            id="cart-trigger-button"
-            onClick={onOpenCart}
-            className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer select-none ${
-              totalItems > 0
-                ? 'bg-[#E11D48] text-white hover:bg-[#BE123C] shadow-lg shadow-rose-200/50 scale-102 hover:scale-105'
-                : 'bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-            }`}
-          >
-            <div className="relative mr-0.5">
-              <ShoppingBag className="w-5 h-5 text-current stroke-[2.2]" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-white text-[#E11D48] text-[9px] font-black min-w-[17px] h-[17px] px-1.5 rounded-full flex items-center justify-center shadow-md border border-rose-100 select-none leading-none">
-                  {totalItems}
-                </span>
-              )}
-            </div>
-            
-            {totalItems > 0 ? (
-              <span className="font-mono text-xs md:text-sm tracking-tight">
-                {totalPrice.toLocaleString('ru-RU')} ₽
-              </span>
-            ) : (
-              <span className="text-xs md:text-sm">Корзина</span>
-            )}
-          </button>
 
         </div>
 

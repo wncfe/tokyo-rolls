@@ -31,12 +31,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={onClickCard}
-      className="group relative flex flex-col justify-between bg-white border border-slate-200/60 rounded-3xl p-4.5 transition-all duration-300 hover:shadow-xl hover:shadow-slate-100 hover:border-slate-300/80 hover:-translate-y-1.5 cursor-pointer"
+      className="group relative flex flex-col justify-between bg-white border border-slate-200/60 rounded-3xl p-4 md:p-6 transition-all duration-300 hover:shadow-xl hover:shadow-slate-100 hover:border-slate-300/80 hover:-translate-y-1.5 cursor-pointer"
     >
       {/* Upper info & image */}
       <div>
         {/* Image Container with Badges */}
-        <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-slate-50 pb-2.5">
+        <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-slate-50">
           <img
             src={product.image}
             alt={product.name}
@@ -68,7 +68,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Title */}
-        <h3 className="text-slate-900 font-bold text-base md:text-lg mt-3.5 tracking-tight group-hover:text-[#E11D48] transition-colors line-clamp-1">
+        <h3 className="text-slate-900 font-bold text-base md:text-xl mt-4 tracking-tight group-hover:text-[#E11D48] transition-colors line-clamp-1">
           {product.name}
         </h3>
 
@@ -84,8 +84,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Weight & price layout */}
         <div className="flex flex-col">
           <span className="text-slate-400 text-[10px] uppercase tracking-wider font-semibold">Цена</span>
-          <span className="text-slate-900 font-mono font-black text-lg md:text-xl tracking-tight">
-            {product.price} <span className="text-xs text-slate-500 font-normal">₽</span>
+          <span className="text-slate-900 font-mono font-black text-lg md:text-2xl tracking-tight">
+            {product.price} <span className="text-sm text-slate-500 font-normal">₽</span>
           </span>
         </div>
 
