@@ -13,6 +13,8 @@ from .models import (
     ProductIngredient,
     PromoCode,
     RestaurantSettings,
+    Set,
+    SetIngredient,
     SetItem,
     SubCategory,
     UserProfile,
@@ -26,15 +28,21 @@ class SubCategoryInline(TabularInline):
 
 class SetItemInline(TabularInline):
     model = SetItem
-    fk_name = 'set_product'
+    fk_name = 'set_menu'
     extra = 1
     autocomplete_fields = ['included_product']
+
+
+class SetIngredientInline(TabularInline):
+    model = SetIngredient
+    extra = 1
+    autocomplete_fields = ['ingredient']
 
 
 class OrderItemInline(TabularInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ('product', 'product_name', 'unit_price', 'quantity', 'weight_grams')
+    readonly_fields = ('product', 'set_menu', 'product_name', 'unit_price', 'quantity', 'weight_grams')
 
 
 class ProductIngredientInline(TabularInline):
@@ -70,6 +78,7 @@ class ProductAdmin(ModelAdmin):
         'price',
         'weight',
         'pieces_amount',
+        'image',
         'is_available',
         'is_new',
     )
@@ -78,7 +87,30 @@ class ProductAdmin(ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     autocomplete_fields = ['category', 'subcategory']
     filter_horizontal = ['allergens']
-    inlines = [SetItemInline, ProductIngredientInline]
+    inlines = [ProductIngredientInline]
+
+    formfield_overrides = {
+        models.CharField: {'widget': UnfoldAdminTextInputWidget},
+        models.TextField: {'widget': UnfoldAdminTextareaWidget},
+    }
+
+
+@admin.register(Set)
+class SetAdmin(ModelAdmin):
+    list_display = (
+        'name',
+        'price',
+        'weight',
+        'pieces_amount',
+        'image',
+        'is_available',
+        'is_new',
+    )
+    list_filter = ('is_available', 'is_new')
+    search_fields = ('name', 'slug', 'description')
+    prepopulated_fields = {'slug': ('name',)}
+    filter_horizontal = ['allergens']
+    inlines = [SetItemInline, SetIngredientInline]
 
     formfield_overrides = {
         models.CharField: {'widget': UnfoldAdminTextInputWidget},
@@ -89,8 +121,8 @@ class ProductAdmin(ModelAdmin):
 
 @admin.register(SetItem)
 class SetItemAdmin(ModelAdmin):
-    list_display = ('set_product', 'included_product', 'quantity')
-    autocomplete_fields = ['set_product', 'included_product']
+    list_display = ('set_menu', 'included_product', 'quantity')
+    autocomplete_fields = ['set_menu', 'included_product']
 
 
 @admin.register(RestaurantSettings)

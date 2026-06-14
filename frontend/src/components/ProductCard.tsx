@@ -1,9 +1,9 @@
 import React from 'react';
 import { Plus, Minus, Flame, Sparkles } from 'lucide-react';
-import { Product } from '../types';
+import { MenuItem } from '../types';
 
 interface ProductCardProps {
-  product: Product;
+  product: MenuItem;
   cartQuantity: number;
   onAddToCart: () => void;
   onRemoveFromCart: () => void;

@@ -1,5 +1,5 @@
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
-import { CartItem } from '../types';
+import { CartItem, MenuItem } from '../types';
 
 interface CartDrawerProps {
   isOpen: boolean;

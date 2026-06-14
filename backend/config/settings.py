@@ -128,6 +128,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (user uploads — images de produits, sets, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # CORS origins: can be overridden by environment variable CORS_ALLOWED_ORIGINS
 _cors_env = os.environ.get('CORS_ALLOWED_ORIGINS')
 if _cors_env:

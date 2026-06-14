@@ -1,9 +1,9 @@
 import { X, Plus, Minus, ShieldAlert } from 'lucide-react';
-import { Product } from '../types';
+import { MenuItem, Set } from '../types';
 
 interface ProductModalProps {
   isOpen: boolean;
-  product: Product | null;
+  product: MenuItem | null;
   onClose: () => void;
   cartQuantity: number;
   onAddToCart: () => void;
@@ -107,6 +107,26 @@ export default function ProductModal({
                       className="text-xs bg-slate-50 border border-slate-200 text-slate-500 px-2.5 py-1.5 rounded-lg font-medium"
                     >
                       {allergen}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* СОСТАВ СЕТА (Set included products) */}
+            {'includedProducts' in product && product.includedProducts && product.includedProducts.length > 0 && (
+              <div className="mb-4 pt-1">
+                <h4 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+                  🍱 Состав набора:
+                </h4>
+                <div className="flex flex-col gap-1.5">
+                  {(product as Set).includedProducts.map((ip) => (
+                    <span
+                      key={ip.id}
+                      className="text-xs bg-slate-50 border border-slate-200/50 text-slate-650 px-3 py-1.5 rounded-xl font-medium flex justify-between"
+                    >
+                      <span>{ip.name}</span>
+                      <span className="text-slate-400 ml-2">×{ip.quantity}</span>
                     </span>
                   ))}
                 </div>

@@ -1,13 +1,13 @@
-import { Product, AuthTokens, LoginData, RegisterData, User } from './types';
+import { Product, Set, MenuItem, AuthTokens, LoginData, RegisterData, User } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export interface MenuData {
-  id: number;
+  id?: number;
   slug: string;
   name: string;
   subtitle: string;
-  products: Product[];
+  products: MenuItem[];
   subcategories?: {
     slug: string;
     name: string;
@@ -61,7 +61,7 @@ export function transformProductFromApi(apiProduct: any): Product {
     price: apiProduct.price,
     weight: apiProduct.weight,
     pieces: apiProduct.pieces_amount,
-    image: apiProduct.image_url,
+    image: apiProduct.image,
     composition: apiProduct.composition || [],
     allergens: apiProduct.allergens || [],
     isNew: apiProduct.is_new,
@@ -70,22 +70,52 @@ export function transformProductFromApi(apiProduct: any): Product {
   };
 }
 
+
+export function transformSetFromApi(apiSet: any): Set {
+  return {
+    id: apiSet.slug,
+    name: apiSet.name,
+    price: apiSet.price,
+    weight: apiSet.weight,
+    pieces: apiSet.pieces_amount,
+    image: apiSet.image,
+    composition: apiSet.composition || [],
+    allergens: apiSet.allergens || [],
+    includedProducts: (apiSet.included_products || []).map((ip: any) => ({
+      id: ip.product_id,
+      slug: ip.product_slug,
+      name: ip.product_name,
+      quantity: ip.quantity,
+    })),
+    isNew: apiSet.is_new,
+    benefitBadge: apiSet.benefit_badge || undefined,
+    description: apiSet.description,
+  };
+}
+
 /**
  * Трансформировать все продукты из меню на формат фронтенда
  */
 export function transformMenuData(menuData: any[]): MenuData[] {
-  return menuData.map(category => ({
-    id: category.id,
-    slug: category.slug,
-    name: category.name,
-    subtitle: category.subtitle,
-    products: (category.products || []).map(transformProductFromApi),
-    subcategories: (category.subcategories || []).map((subcat: { slug: string; name: string; products: any[] }) => ({
-      slug: subcat.slug,
-      name: subcat.name,
-      products: (subcat.products || []).map(transformProductFromApi),
-    })),
-  }));
+  return menuData.map(category => {
+    const isSetsCategory = category.slug === 'sets';
+    return {
+      id: category.id,
+      slug: category.slug,
+      name: category.name,
+      subtitle: category.subtitle,
+      products: isSetsCategory
+        ? (category.products || []).map(transformSetFromApi)
+        : (category.products || []).map(transformProductFromApi),
+      subcategories: (category.subcategories || []).map(
+        (subcat: { slug: string; name: string; products: any[] }) => ({
+          slug: subcat.slug,
+          name: subcat.name,
+          products: (subcat.products || []).map(transformProductFromApi),
+        })
+      ),
+    };
+  });
 }
 
 // ─── Auth helpers ───

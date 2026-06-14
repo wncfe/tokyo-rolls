@@ -5,7 +5,7 @@ import ProductCard from './components/ProductCard';
 import ProductModal from './components/ProductModal';
 import CartDrawer from './components/CartDrawer';
 import AuthModal from './components/AuthModal';
-import { CartItem, Product, User, LoginData, RegisterData } from './types';
+import { CartItem, Product, Set, MenuItem, User, LoginData, RegisterData } from './types';
 import { Flame, Sparkles, Clock, MapPin, Star, ShoppingBag } from 'lucide-react';
 import {
   fetchMenu, transformMenuData, MenuData,
@@ -78,7 +78,7 @@ export default function App() {
 
   const [activeCategory, setActiveCategory] = useState<string>('sets');
   const [activeSubcategory, setActiveSubcategory] = useState<'baked' | 'warm' | 'classic'>('baked');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   
   // Menu data from backend
@@ -166,7 +166,7 @@ export default function App() {
   }, [isRestaurantOpen]);
 
   // Cart Handlers
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: MenuItem) => {
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex((item) => item.product.id === product.id);
       if (existingIndex > -1) {
@@ -210,7 +210,7 @@ export default function App() {
   };
 
   // Helper function to get products from menuData by category and subcategory
-  const getProductsByCategory = (categorySlug: string, subcategorySlug?: string): Product[] => {
+  const getProductsByCategory = (categorySlug: string, subcategorySlug?: string): MenuItem[] => {
     if (!menuData || menuData.length === 0) return [];
     
     const category = menuData.find(cat => cat.slug === categorySlug);
@@ -225,7 +225,7 @@ export default function App() {
   };
 
   // Helper function to find a product by ID across all categories
-  const findProductById = (productId: string): Product | undefined => {
+  const findProductById = (productId: string): MenuItem | undefined => {
     for (const category of menuData) {
       const found = category.products?.find(p => p.id === productId);
       if (found) return found;

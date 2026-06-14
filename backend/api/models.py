@@ -91,8 +91,8 @@ class Allergen(models.Model):
 
 class Product(models.Model):
     """
-    Универсальная позиция меню: сет, ролл, суши, горячее, десерт, напиток, соус.
-    Тип определяется категорией (как на фронте в types.ts).
+    Позиция меню: ролл, суши, горячее, десерт, напиток, соус.
+    Сеты вынесены в отдельную модель Set.
     """
 
     category = models.ForeignKey(
@@ -126,7 +126,7 @@ class Product(models.Model):
         validators=[MinValueValidator(1)],
         help_text='Кусочков в порции или 1 для супа/напитка',
     )
-    image_url = models.URLField(max_length=500, verbose_name='URL изображения')
+    image = models.ImageField(upload_to='products/', verbose_name='Изображение')
     ingredients = models.ManyToManyField(
         'Ingredient',
         through='ProductIngredient',
@@ -168,19 +168,69 @@ class Product(models.Model):
             if category_slug != 'rolls' and self.subcategory_id:
                 raise ValidationError({'subcategory': 'Подкатегория допустима только для роллов.'})
 
-    @property
-    def is_set(self):
-        return self.category.slug == 'sets'
+
+class Set(models.Model):
+    """
+    Самостоятельная модель сета — набора из других позиций меню (роллов, суши и т.д.).
+    НЕ наследник Product; живёт в отдельной админке и отдельном API.
+    """
+
+    slug = models.SlugField(max_length=64, unique=True, verbose_name='Slug')
+    name = models.CharField(max_length=200, verbose_name='Название')
+    description = models.TextField(verbose_name='Описание')
+    price = models.PositiveIntegerField(
+        verbose_name='Цена, ₽',
+        validators=[MinValueValidator(1)],
+    )
+    weight = models.PositiveSmallIntegerField(
+        verbose_name='Вес, г',
+        validators=[MinValueValidator(1)],
+    )
+    pieces_amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество штук',
+        validators=[MinValueValidator(1)],
+    )
+    image = models.ImageField(upload_to='sets/', verbose_name='Изображение')
+    ingredients = models.ManyToManyField(
+        'Ingredient',
+        through='SetIngredient',
+        related_name='sets',
+        verbose_name='Ингредиенты',
+    )
+    allergens = models.ManyToManyField(
+        'Allergen',
+        blank=True,
+        related_name='sets',
+        verbose_name='Аллергены',
+    )
+    is_new = models.BooleanField(default=False, verbose_name='Новинка')
+    benefit_badge = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name='Бейдж',
+        help_text='Например: «15% выгода», «Хит»',
+    )
+    is_available = models.BooleanField(default=True, verbose_name='Доступен для заказа')
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='Порядок')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['sort_order', 'name']
+        verbose_name = 'Сет'
+        verbose_name_plural = 'Сеты'
+
+    def __str__(self):
+        return self.name
 
 
 class SetItem(models.Model):
     """Состав сета: ссылка на другие позиции меню (роллы, суши и т.д.)."""
 
-    set_product = models.ForeignKey(
-        Product,
+    set_menu = models.ForeignKey(
+        Set,
         on_delete=models.CASCADE,
         related_name='set_items',
-        limit_choices_to={'category__slug': 'sets'},
         verbose_name='Сет',
     )
     included_product = models.ForeignKey(
@@ -201,18 +251,50 @@ class SetItem(models.Model):
         verbose_name_plural = 'Состав сетов'
         constraints = [
             models.UniqueConstraint(
-                fields=['set_product', 'included_product'],
+                fields=['set_menu', 'included_product'],
                 name='unique_set_item',
             ),
             models.CheckConstraint(
-                condition=~models.Q(set_product=models.F('included_product')),
+                condition=~models.Q(set_menu=models.F('included_product')),
                 name='set_cannot_include_itself',
-                violation_error_message='Сет не может включать сам себя.',
+                violation_error_message='Некорректная ссылка в составе сета.',
             ),
         ]
 
     def __str__(self):
-        return f'{self.set_product.name}: {self.included_product.name} × {self.quantity}'
+        return f'{self.set_menu.name}: {self.included_product.name} × {self.quantity}'
+
+
+class SetIngredient(models.Model):
+    """Связь сет–ингредиент с сохранением порядка."""
+
+    set_menu = models.ForeignKey(
+        'Set',
+        on_delete=models.CASCADE,
+        related_name='set_ingredients',
+        verbose_name='Сет',
+    )
+    ingredient = models.ForeignKey(
+        'Ingredient',
+        on_delete=models.PROTECT,
+        related_name='set_ingredients',
+        verbose_name='Ингредиент',
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0, verbose_name='Порядок')
+
+    class Meta:
+        ordering = ['sort_order']
+        verbose_name = 'Ингредиент в сете'
+        verbose_name_plural = 'Ингредиенты в сетах'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['set_menu', 'ingredient'],
+                name='unique_set_ingredient',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.set_menu.name} ← {self.ingredient.name}'
 
 
 class ProductIngredient(models.Model):
@@ -388,7 +470,7 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    """Позиция в заказе (снимок цены на момент оформления)."""
+    """Позиция в заказе (снимок цены на момент оформления). Может быть продукт ИЛИ сет."""
 
     order = models.ForeignKey(
         Order,
@@ -399,8 +481,18 @@ class OrderItem(models.Model):
     product = models.ForeignKey(
         Product,
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='order_items',
         verbose_name='Продукт',
+    )
+    set_menu = models.ForeignKey(
+        Set,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='order_items',
+        verbose_name='Сет',
     )
     product_name = models.CharField(max_length=200, verbose_name='Название (снимок)')
     unit_price = models.PositiveIntegerField(verbose_name='Цена за единицу, ₽')
@@ -413,6 +505,16 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = 'Позиция заказа'
         verbose_name_plural = 'Позиции заказа'
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(product__isnull=False, set_menu__isnull=True)
+                    | models.Q(product__isnull=True, set_menu__isnull=False)
+                ),
+                name='orderitem_product_xor_set',
+                violation_error_message='Должен быть заполнен ровно один: продукт ИЛИ сет.',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.product_name} × {self.quantity}'
@@ -420,3 +522,10 @@ class OrderItem(models.Model):
     @property
     def line_total(self):
         return self.unit_price * self.quantity
+
+    def clean(self):
+        super().clean()
+        if self.product_id and self.set_menu_id:
+            raise ValidationError('Нельзя указать одновременно и продукт, и сет.')
+        if not self.product_id and not self.set_menu_id:
+            raise ValidationError('Нужно указать продукт ИЛИ сет.')

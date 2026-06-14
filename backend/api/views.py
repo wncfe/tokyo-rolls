@@ -2,9 +2,9 @@ from django.http import JsonResponse
 from rest_framework import viewsets, filters, generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import Category, SubCategory, Product, UserProfile
+from .models import Category, SubCategory, Product, Set, UserProfile
 from .serializers import (
-    CategorySerializer, SubCategorySerializer, ProductSerializer,
+    CategorySerializer, SubCategorySerializer, ProductSerializer, SetSerializer,
     RegisterSerializer, UserProfileSerializer,
 )
 
@@ -53,10 +53,24 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
+class SetViewSet(viewsets.ReadOnlyModelViewSet):
+    """API для сетов (наборов)."""
+    serializer_class = SetSerializer
+    lookup_field = 'slug'
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['sort_order', 'name', 'price']
+    ordering = ['sort_order', 'name']
+
+    def get_queryset(self):
+        return Set.objects.filter(is_available=True).prefetch_related(
+            'set_items__included_product', 'ingredients', 'allergens'
+        )
+
+
 @api_view(['GET'])
 def get_categories_with_products(request):
     """
-    Получить все категории с их продуктами.
+    Получить все категории с их продуктами + отдельно сеты.
     Оптимизированный эндпоинт для главной страницы фронтенда.
     """
     categories = Category.objects.filter(is_active=True).prefetch_related(
@@ -65,7 +79,24 @@ def get_categories_with_products(request):
     ).order_by('sort_order')
 
     data = []
+
+    # Сеты идут первым блоком (отдельная сущность Set, не Product)
+    sets = Set.objects.filter(is_available=True).prefetch_related(
+        'set_items__included_product', 'ingredients', 'allergens'
+    ).order_by('sort_order')
+    if sets.exists():
+        data.append({
+            'slug': 'sets',
+            'name': 'Сеты',
+            'subtitle': 'ЛУЧШИЙ ВЫБОР ДЛЯ КОМПАНИИ',
+            'products': SetSerializer(sets, many=True).data,
+        })
+
     for category in categories:
+        # Пропускаем sets — они уже добавлены выше
+        if category.slug == 'sets':
+            continue
+
         cat_data = {
             'id': category.id,
             'slug': category.slug,
