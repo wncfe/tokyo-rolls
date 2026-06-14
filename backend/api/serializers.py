@@ -59,7 +59,10 @@ class ProductSerializer(serializers.ModelSerializer):
         return list(obj.ingredients.values_list('name', flat=True))
 
     def get_allergens(self, obj):
-        return list(obj.allergens.values_list('name', flat=True))
+        # Автоматически собирает аллергены из ингредиентов продукта, исключая дубликаты
+        return sorted(set(
+            obj.ingredients.exclude(allergens__isnull=True).values_list('allergens__name', flat=True)
+        ))
 
 
 class SetItemSerializer(serializers.ModelSerializer):
@@ -101,7 +104,10 @@ class SetSerializer(serializers.ModelSerializer):
         return list(obj.ingredients.values_list('name', flat=True))
 
     def get_allergens(self, obj):
-        return list(obj.allergens.values_list('name', flat=True))
+        # Автоматически собирает аллергены из ингредиентов сета, исключая дубликаты
+        return sorted(set(
+            obj.ingredients.exclude(allergens__isnull=True).values_list('allergens__name', flat=True)
+        ))
 
 
 class RegisterSerializer(serializers.ModelSerializer):

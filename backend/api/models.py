@@ -64,6 +64,13 @@ class Ingredient(models.Model):
 
     slug = models.SlugField(max_length=64, unique=True, verbose_name='Slug')
     name = models.CharField(max_length=100, unique=True, verbose_name='Название')
+    allergens = models.ManyToManyField(
+        'Allergen',
+        blank=True,
+        related_name='ingredients',
+        verbose_name='Аллергены',
+        help_text='Аллергены, которые содержит этот ингредиент (глютен — в муке, моллюски — в мидиях и т.д.)',
+    )
 
     class Meta:
         ordering = ['name']
@@ -133,12 +140,6 @@ class Product(models.Model):
         related_name='products',
         verbose_name='Ингредиенты',
     )
-    allergens = models.ManyToManyField(
-        'Allergen',
-        blank=True,
-        related_name='products',
-        verbose_name='Аллергены',
-    )
     is_new = models.BooleanField(default=False, verbose_name='Новинка')
     benefit_badge = models.CharField(
         max_length=50,
@@ -197,12 +198,6 @@ class Set(models.Model):
         related_name='sets',
         verbose_name='Ингредиенты',
     )
-    allergens = models.ManyToManyField(
-        'Allergen',
-        blank=True,
-        related_name='sets',
-        verbose_name='Аллергены',
-    )
     is_new = models.BooleanField(default=False, verbose_name='Новинка')
     benefit_badge = models.CharField(
         max_length=50,
@@ -253,11 +248,6 @@ class SetItem(models.Model):
             models.UniqueConstraint(
                 fields=['set_menu', 'included_product'],
                 name='unique_set_item',
-            ),
-            models.CheckConstraint(
-                condition=~models.Q(set_menu=models.F('included_product')),
-                name='set_cannot_include_itself',
-                violation_error_message='Некорректная ссылка в составе сета.',
             ),
         ]
 

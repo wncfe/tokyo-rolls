@@ -38,6 +38,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = Product.objects.filter(is_available=True).select_related(
             'category', 'subcategory'
+        ).prefetch_related(
+            'ingredients__allergens'
         )
 
         # Фильтрация по категории
@@ -63,7 +65,7 @@ class SetViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Set.objects.filter(is_available=True).prefetch_related(
-            'set_items__included_product', 'ingredients', 'allergens'
+            'set_items__included_product', 'ingredients__allergens'
         )
 
 
@@ -82,7 +84,7 @@ def get_categories_with_products(request):
 
     # Сеты идут первым блоком (отдельная сущность Set, не Product)
     sets = Set.objects.filter(is_available=True).prefetch_related(
-        'set_items__included_product', 'ingredients', 'allergens'
+        'set_items__included_product', 'ingredients__allergens'
     ).order_by('sort_order')
     if sets.exists():
         data.append({

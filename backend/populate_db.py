@@ -125,6 +125,31 @@ def get_allergen(name):
     return a
 
 
+# ── Привязка аллергенов к ингредиентам ──
+# Логика: аллерген содержится в конкретном ингредиенте, а не в блюде.
+# Глютен — в темпурной муке (кляр), моллюски — в креветках/крабе, молочка — в сыре.
+ingredient_allergen_map = {
+    'Лосось': ['Рыба'],
+    'Тунец': ['Рыба'],
+    'Угорь': ['Рыба'],
+    'Икра тобико': ['Рыба'],
+    'Креветка': ['Моллюски/Ракообразные'],
+    'Краб': ['Моллюски/Ракообразные'],
+    'Сливочный сыр': ['Молочные продукты'],
+    'Соевый соус': ['Соя'],
+    'Кунжут': ['Кунжут'],
+    'Кляр': ['Глютен', 'Яичные продукты'],
+    'Майонез': ['Яичные продукты'],
+    'Васаби': ['Острое'],
+}
+
+for ing_name, allergen_names in ingredient_allergen_map.items():
+    ing = get_ingredient(ing_name)
+    for a_name in allergen_names:
+        ing.allergens.add(get_allergen(a_name))
+    print(f'  🔗 {ing.name} → {allergen_names}')
+
+
 # ═════════════════════════════════════════
 #  СЕТЫ (модель Set)
 # ═════════════════════════════════════════
@@ -191,7 +216,7 @@ sets_data = [
 saved_sets = {}
 for sdata in sets_data:
     composition = sdata.pop('composition')
-    allgs = sdata.pop('allergens')
+    sdata.pop('allergens')  # not used — allergens come from ingredients now
     included = sdata.pop('included')
     image_url = sdata.pop('image_url')
 
@@ -206,8 +231,6 @@ for sdata in sets_data:
         SetIngredient.objects.create(
             set_menu=menu_set, ingredient=get_ingredient(ing_name), sort_order=i,
         )
-    for a_name in allgs:
-        menu_set.allergens.add(get_allergen(a_name))
 
     print(f'✅ Сет: {menu_set.name}  ({menu_set.price} ₽)  image={"OK" if image_file else "—"}')
 
@@ -321,7 +344,7 @@ for pdata in products_data:
     category_slug = pdata.pop('category')
     subcategory_slug = pdata.pop('subcategory', None)
     composition = pdata.pop('composition')
-    allgs = pdata.pop('allergens')
+    pdata.pop('allergens')  # not used — allergens come from ingredients now
     image_url = pdata.pop('image_url')
 
     image_file = download_image(image_url)
@@ -337,8 +360,6 @@ for pdata in products_data:
         ProductIngredient.objects.create(
             product=product, ingredient=get_ingredient(ing_name), sort_order=i,
         )
-    for a_name in allgs:
-        product.allergens.add(get_allergen(a_name))
 
     print(f'✅ Продукт: {product.name}  ({product.price} ₽)  image={"OK" if image_file else "—"}')
 

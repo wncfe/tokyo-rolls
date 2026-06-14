@@ -86,7 +86,6 @@ class ProductAdmin(ModelAdmin):
     search_fields = ('name', 'slug', 'description')
     prepopulated_fields = {'slug': ('name',)}
     autocomplete_fields = ['category', 'subcategory']
-    filter_horizontal = ['allergens']
     inlines = [ProductIngredientInline]
 
     formfield_overrides = {
@@ -109,7 +108,6 @@ class SetAdmin(ModelAdmin):
     list_filter = ('is_available', 'is_new')
     search_fields = ('name', 'slug', 'description')
     prepopulated_fields = {'slug': ('name',)}
-    filter_horizontal = ['allergens']
     inlines = [SetItemInline, SetIngredientInline]
 
     formfield_overrides = {
@@ -166,6 +164,7 @@ class IngredientAdmin(ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name',)
     prepopulated_fields = {'slug': ('name',)}
+    filter_horizontal = ['allergens']
 
 
 @admin.register(Allergen)
