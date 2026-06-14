@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, LogIn, UserPlus } from 'lucide-react';
 import { LoginData, RegisterData } from '../types';
 
@@ -24,8 +24,6 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
   const [regPassword, setRegPassword] = useState('');
   const [regPhone, setRegPhone] = useState('');
 
-  if (!isOpen) return null;
-
   const resetForms = () => {
     setLoginUsername('');
     setLoginPassword('');
@@ -34,6 +32,28 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
     setRegPhone('');
     setError(null);
   };
+
+  // Phone mask: raw input → +7 (XXX) XXX-XX-XX
+  const formatPhone = (raw: string): string => {
+    const digits = raw.replace(/\D/g, '').slice(0, 11);
+    if (digits.length === 0) return '';
+    let out = '+7';
+    if (digits.length > 1) out += ' (' + digits.slice(1, 4);
+    if (digits.length >= 5) out += ') ' + digits.slice(4, 7);
+    if (digits.length >= 8) out += '-' + digits.slice(7, 9);
+    if (digits.length >= 10) out += '-' + digits.slice(9, 11);
+    return out;
+  };
+
+  // Reset forms & tab every time the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setTab(initialTab);
+      resetForms();
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const handleTabSwitch = (newTab: 'login' | 'register') => {
     setTab(newTab);
@@ -60,6 +80,11 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
     setError(null);
     if (regPassword.length < 8) {
       setError('Пароль должен быть не менее 8 символов');
+      return;
+    }
+    const PHONE_RE = /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/;
+    if (regPhone.trim() && !PHONE_RE.test(regPhone.trim())) {
+      setError('Введите номер в формате +7 (XXX) XXX-XX-XX');
       return;
     }
     setLoading(true);
@@ -93,7 +118,7 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
         </button>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-200">
+        <div className="flex border-b border-slate-200 pr-12">
           <button
             onClick={() => handleTabSwitch('login')}
             className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-colors cursor-pointer select-none ${
@@ -201,7 +226,7 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
               <input
                 type="tel"
                 value={regPhone}
-                onChange={(e) => setRegPhone(e.target.value)}
+                onChange={(e) => setRegPhone(formatPhone(e.target.value))}
                 placeholder="+7 (___) ___-__-__"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
               />
