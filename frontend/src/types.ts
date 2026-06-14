@@ -46,9 +46,7 @@ export interface CartItem {
 // Auth types
 export interface User {
   id: number;
-  username: string;
   phone: string;
-  address: string;
 }
 
 export interface AuthTokens {
@@ -56,15 +54,35 @@ export interface AuthTokens {
   refresh: string;
 }
 
-export interface LoginData {
-  username: string;
-  password: string;
+export interface PhoneAuthData {
+  phone: string;
 }
 
-export interface RegisterData {
-  username: string;
-  password: string;
+export interface VerifyCodeData {
   phone: string;
+  code: string;
+}
+
+// Saved address
+export interface Address {
+  id: number;
+  full_address: string;
+  flat: string;
+  entrance: string;
+  floor: string;
+  intercom: string;
+  comment: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface AddressFormData {
+  full_address: string;
+  flat: string;
+  entrance: string;
+  floor: string;
+  intercom: string;
+  comment: string;
 }
 
 // Restaurant settings from backend
@@ -77,13 +95,15 @@ export interface RestaurantSettings {
   delivery_time_min: number;
   delivery_time_max: number;
   restaurant_address: string;
+  is_open: boolean;  // вычисляется сервером по Europe/Moscow
 }
 
 // Checkout request
 export interface CheckoutData {
-  customer_name: string;
-  customer_phone: string;
+  customer_name?: string;
+  customer_phone?: string;
   delivery_address?: string;
+  address_id?: number;
   comment: string;
   promo_code: string;
   order_type: 'delivery' | 'pickup';

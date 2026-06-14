@@ -403,7 +403,7 @@ class PromoCode(models.Model):
 
 
 class UserProfile(models.Model):
-    """Расширенный профиль пользователя (телефон, адрес)."""
+    """Расширенный профиль пользователя (телефон, код подтверждения)."""
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -411,7 +411,8 @@ class UserProfile(models.Model):
         verbose_name='Пользователь',
     )
     phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон')
-    address = models.TextField(blank=True, verbose_name='Адрес доставки')
+    verification_code = models.CharField(max_length=4, blank=True, verbose_name='Код подтверждения')
+    code_sent_at = models.DateTimeField(null=True, blank=True, verbose_name='Код отправлен')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
 
     class Meta:
@@ -420,6 +421,44 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f'Профиль: {self.user.username}'
+
+
+class Address(models.Model):
+    """Сохранённый адрес доставки пользователя."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='addresses',
+        verbose_name='Пользователь',
+    )
+    full_address = models.CharField(
+        max_length=500,
+        verbose_name='Адрес (улица, дом)',
+        help_text='Корневой адрес из DaData: «г Пермь, ул Ленина, д 1»',
+    )
+    flat = models.CharField(max_length=20, blank=True, verbose_name='Квартира / офис')
+    entrance = models.CharField(max_length=20, blank=True, verbose_name='Подъезд')
+    floor = models.CharField(max_length=20, blank=True, verbose_name='Этаж')
+    intercom = models.CharField(max_length=50, blank=True, verbose_name='Домофон')
+    comment = models.TextField(blank=True, verbose_name='Комментарий курьеру')
+    is_default = models.BooleanField(default=False, verbose_name='Основной адрес')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
+
+    class Meta:
+        ordering = ['-is_default', '-created_at']
+        verbose_name = 'Адрес доставки'
+        verbose_name_plural = 'Адреса доставки'
+
+    def __str__(self):
+        return f'{self.full_address}{" (основной)" if self.is_default else ""}'
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            Address.objects.filter(user=self.user, is_default=True).update(is_default=False)
+        # If this is the first address, make it default
+        if not self.pk and not Address.objects.filter(user=self.user).exists():
+            self.is_default = True
+        super().save(*args, **kwargs)
 
 
 class Order(models.Model):

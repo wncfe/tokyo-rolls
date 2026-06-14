@@ -8,6 +8,7 @@ from unfold.widgets import (
 )
 
 from .models import (
+    Address,
     Allergen,
     Category,
     Ingredient,
@@ -166,6 +167,13 @@ class OrderAdmin(ModelAdmin):
 class UserProfileAdmin(ModelAdmin):
     list_display = ('user', 'phone', 'created_at')
     search_fields = ('user__username', 'phone')
+
+
+@admin.register(Address)
+class AddressAdmin(ModelAdmin):
+    list_display = ('full_address', 'user', 'flat', 'is_default', 'created_at')
+    list_filter = ('is_default',)
+    search_fields = ('full_address', 'user__username', 'user__profile__phone')
 
 
 @admin.register(Ingredient)

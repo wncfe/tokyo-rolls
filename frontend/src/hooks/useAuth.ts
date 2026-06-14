@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { User, LoginData, RegisterData } from '../types';
+import { User, Address } from '../types';
 import {
-  loginUser, registerUser, fetchProfile, refreshToken,
+  requestCode, verifyCode, fetchProfile, fetchAddresses, refreshToken,
   getStoredToken, clearStoredToken,
 } from '../api';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
 
   // Restore session on mount
   useEffect(() => {
@@ -16,11 +17,15 @@ export function useAuth() {
       try {
         const profile = await fetchProfile();
         setUser(profile);
+        const addrs = await fetchAddresses();
+        setAddresses(addrs);
       } catch {
         try {
           await refreshToken();
           const profile = await fetchProfile();
           setUser(profile);
+          const addrs = await fetchAddresses();
+          setAddresses(addrs);
         } catch {
           clearStoredToken();
         }
@@ -28,28 +33,29 @@ export function useAuth() {
     })();
   }, []);
 
-  const login = useCallback(async (data: LoginData) => {
-    await loginUser(data);
-    const profile = await fetchProfile();
-    setUser(profile);
+  const loginWithPhone = useCallback(async (phone: string) => {
+    await requestCode(phone);
   }, []);
 
-  const register = useCallback(async (data: RegisterData) => {
-    await registerUser(data);
-    try {
-      await loginUser({ username: data.username, password: data.password });
-      const profile = await fetchProfile();
-      setUser(profile);
-    } catch {
-      clearStoredToken();
-      throw new Error('Регистрация прошла, но не удалось войти. Попробуйте войти вручную.');
-    }
+  const verifyPhoneCode = useCallback(async (phone: string, code: string) => {
+    const result = await verifyCode({ phone, code });
+    const profile = await fetchProfile();
+    setUser(profile);
+    const addrs = await fetchAddresses();
+    setAddresses(addrs);
+    return result;
   }, []);
 
   const logout = useCallback(() => {
     clearStoredToken();
     setUser(null);
+    setAddresses([]);
   }, []);
 
-  return { user, login, register, logout };
+  const refreshAddresses = useCallback(async () => {
+    const addrs = await fetchAddresses();
+    setAddresses(addrs);
+  }, []);
+
+  return { user, addresses, loginWithPhone, verifyPhoneCode, logout, refreshAddresses };
 }

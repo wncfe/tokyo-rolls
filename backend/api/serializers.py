@@ -1,8 +1,9 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from .models import (
-    Category, SubCategory, Product, Set, SetItem, UserProfile,
+    Address, Category, SubCategory, Product, Set, SetItem, UserProfile,
     Ingredient, Allergen, Order, OrderItem, RestaurantSettings, PromoCode,
 )
 
@@ -132,35 +133,54 @@ class SetSerializer(serializers.ModelSerializer):
         ))
 
 
-class RegisterSerializer(serializers.ModelSerializer):
-    """Регистрация нового пользователя + создание профиля."""
-    phone = serializers.CharField(
-        max_length=20, required=False, write_only=True,
-        validators=[RegexValidator(r'^\+7\s?\(?\d{3}\)?\s?\d{3}-?\d{2}-?\d{2}$',
-                                   message='Формат: +7 (XXX) XXX-XX-XX')],
-    )
-
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'password', 'phone']
-        extra_kwargs = {
-            'password': {'write_only': True, 'min_length': 8},
-        }
-
-    def create(self, validated_data):
-        phone = validated_data.pop('phone', '')
-        user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user, phone=phone)
-        return user
-
-
 class UserProfileSerializer(serializers.ModelSerializer):
     """Профиль пользователя (чтение и редактирование)."""
     username = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'phone', 'address', 'created_at']
+        fields = ['id', 'username', 'phone', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+# ─── Passwordless Auth ───
+
+PHONE_REGEX = r'^\+7\s?\(?\d{3}\)?\s?\d{3}-?\d{2}-?\d{2}$'
+
+class PhoneRequestSerializer(serializers.Serializer):
+    """Запрос кода подтверждения по номеру телефона."""
+    phone = serializers.CharField(
+        max_length=20,
+        validators=[RegexValidator(PHONE_REGEX, message='Формат: +7 (XXX) XXX-XX-XX')],
+    )
+
+
+class CodeVerifySerializer(serializers.Serializer):
+    """Подтверждение кода и получение JWT-токенов."""
+    phone = serializers.CharField(
+        max_length=20,
+        validators=[RegexValidator(PHONE_REGEX, message='Формат: +7 (XXX) XXX-XX-XX')],
+    )
+    code = serializers.CharField(max_length=4, min_length=4)
+
+    def validate_code(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError('Код должен содержать только цифры.')
+        return value
+
+
+# ─── Address ───
+
+class AddressSerializer(serializers.ModelSerializer):
+    """Сохранённый адрес доставки."""
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Address
+        fields = [
+            'id', 'user', 'full_address', 'flat', 'entrance',
+            'floor', 'intercom', 'comment', 'is_default', 'created_at',
+        ]
         read_only_fields = ['id', 'created_at']
 
 
@@ -184,22 +204,49 @@ class OrderItemWriteSerializer(serializers.ModelSerializer):
 
 
 class OrderWriteSerializer(serializers.ModelSerializer):
-    """Создание заказа из корзины."""
+    """Создание заказа из корзины (только для авторизованных)."""
     items = OrderItemWriteSerializer(many=True)
     promo_code = serializers.CharField(max_length=32, required=False, allow_blank=True, write_only=True)
     order_type = serializers.ChoiceField(choices=[('delivery', 'Доставка'), ('pickup', 'Самовывоз')], default='delivery')
+    address_id = serializers.IntegerField(required=False, write_only=True)
+    customer_name = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    customer_phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
 
     class Meta:
         model = Order
         fields = [
             'customer_name', 'customer_phone', 'delivery_address',
-            'comment', 'promo_code', 'order_type', 'items',
+            'comment', 'promo_code', 'order_type', 'address_id', 'items',
         ]
 
     def validate(self, attrs):
         items_data = attrs.get('items', [])
         if not items_data:
             raise serializers.ValidationError({'items': 'Корзина пуста.'})
+
+        # Разрешить address_id → delivery_address
+        address_id = attrs.pop('address_id', None)
+        if address_id:
+            request = self.context.get('request')
+            if not request or not request.user.is_authenticated:
+                raise serializers.ValidationError({'address_id': 'Требуется авторизация.'})
+            try:
+                addr = Address.objects.get(id=address_id, user=request.user)
+            except Address.DoesNotExist:
+                raise serializers.ValidationError({'address_id': 'Адрес не найден.'})
+            # Собрать полную строку доставки
+            parts = [addr.full_address]
+            if addr.flat:
+                parts.append(f'кв./офис {addr.flat}')
+            if addr.entrance:
+                parts.append(f'подъезд {addr.entrance}')
+            if addr.floor:
+                parts.append(f'этаж {addr.floor}')
+            if addr.intercom:
+                parts.append(f'домофон {addr.intercom}')
+            if addr.comment:
+                parts.append(f'({addr.comment})')
+            attrs['delivery_address'] = ', '.join(parts)
 
         # Проверяем промокод сразу при валидации, чтобы вернуть понятную ошибку
         promo_code_str = attrs.get('promo_code', '')
@@ -337,13 +384,21 @@ class OrderReadSerializer(serializers.ModelSerializer):
 # ─── Restaurant Settings ───
 
 class RestaurantSettingsSerializer(serializers.ModelSerializer):
+    is_open = serializers.SerializerMethodField()
+
     class Meta:
         model = RestaurantSettings
         fields = [
             'opening_hour', 'closing_hour', 'min_order_amount',
             'free_delivery_from', 'suburban_delivery_fee',
             'delivery_time_min', 'delivery_time_max', 'restaurant_address',
+            'is_open',
         ]
+
+    def get_is_open(self, obj):
+        from django.utils import timezone
+        now = timezone.localtime()  # Europe/Moscow
+        return obj.opening_hour <= now.hour < obj.closing_hour
 
 
 # ─── Promo Code ───

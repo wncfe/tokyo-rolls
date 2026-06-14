@@ -1,37 +1,32 @@
 import { useState, useEffect } from 'react';
-import { LogIn, UserPlus } from 'lucide-react';
-import { LoginData, RegisterData } from '../types';
+import { Phone, KeyRound, ArrowLeft, Loader2 } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
-  initialTab?: 'login' | 'register';
   onClose: () => void;
-  onLogin: (data: LoginData) => Promise<void>;
-  onRegister: (data: RegisterData) => Promise<void>;
+  onRequestCode: (phone: string) => Promise<void>;
+  onVerifyCode: (phone: string, code: string) => Promise<void>;
 }
 
-export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLogin, onRegister }: AuthModalProps) {
-  const [tab, setTab] = useState<'login' | 'register'>(initialTab);
+export default function AuthModal({ isOpen, onClose, onRequestCode, onVerifyCode }: AuthModalProps) {
+  const [step, setStep] = useState<'phone' | 'code'>('phone');
+  const [phone, setPhone] = useState('');
+  const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Login form
-  const [loginUsername, setLoginUsername] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-
-  // Register form
-  const [regUsername, setRegUsername] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regPhone, setRegPhone] = useState('');
-
   const resetForms = () => {
-    setLoginUsername('');
-    setLoginPassword('');
-    setRegUsername('');
-    setRegPassword('');
-    setRegPhone('');
+    setPhone('');
+    setCode('');
     setError(null);
+    setStep('phone');
   };
+
+  useEffect(() => {
+    if (isOpen) resetForms();
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   // Phone mask: raw input → +7 (XXX) XXX-XX-XX
   const formatPhone = (raw: string): string => {
@@ -45,55 +40,49 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
     return out;
   };
 
-  // Reset forms & tab every time the modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setTab(initialTab);
-      resetForms();
-    }
-  }, [isOpen]);
+  const PHONE_RE = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+  const isPhoneValid = PHONE_RE.test(phone.trim());
+  const isCodeValid = code.trim().length === 4 && /^\d{4}$/.test(code.trim());
 
-  if (!isOpen) return null;
-
-  const handleTabSwitch = (newTab: 'login' | 'register') => {
-    setTab(newTab);
-    setError(null);
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isPhoneValid) return;
     setError(null);
     setLoading(true);
     try {
-      await onLogin({ username: loginUsername.trim(), password: loginPassword });
-      resetForms();
-      onClose();
+      await onRequestCode(phone.trim());
+      setStep('code');
     } catch (err: any) {
-      setError(err.message || 'Ошибка входа');
+      setError(err.message || 'Ошибка отправки кода');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isCodeValid) return;
     setError(null);
-    if (regPassword.length < 8) {
-      setError('Пароль должен быть не менее 8 символов');
-      return;
-    }
-    const PHONE_RE = /^\+7 \d{3} \d{3}-\d{2}-\d{2}$/;
-    if (regPhone.trim() && !PHONE_RE.test(regPhone.trim())) {
-      setError('Введите номер в формате +7 (XXX) XXX-XX-XX');
-      return;
-    }
     setLoading(true);
     try {
-      await onRegister({ username: regUsername.trim(), password: regPassword, phone: regPhone.trim() });
+      await onVerifyCode(phone.trim(), code.trim());
       resetForms();
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Ошибка регистрации');
+      setError(err.message || 'Неверный код');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError(null);
+    setCode('');
+    setLoading(true);
+    try {
+      await onRequestCode(phone.trim());
+    } catch (err: any) {
+      setError(err.message || 'Ошибка отправки кода');
     } finally {
       setLoading(false);
     }
@@ -110,30 +99,26 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
         style={{ cursor: 'default' }}
         className="relative w-full max-w-md bg-white border border-slate-200/80 rounded-3xl shadow-2xl overflow-hidden animate-scaleUp"
       >
-        {/* Tabs */}
-        <div className="flex border-b border-slate-200">
-          <button
-            onClick={() => handleTabSwitch('login')}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-colors cursor-pointer select-none ${
-              tab === 'login'
-                ? 'text-[#E11D48] border-b-2 border-[#E11D48] bg-rose-50/50'
-                : 'text-slate-400 hover:text-slate-600 border-b-2 border-transparent'
-            }`}
-          >
-            <LogIn className="w-4 h-4" />
-            Вход
-          </button>
-          <button
-            onClick={() => handleTabSwitch('register')}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-bold transition-colors cursor-pointer select-none ${
-              tab === 'register'
-                ? 'text-[#E11D48] border-b-2 border-[#E11D48] bg-rose-50/50'
-                : 'text-slate-400 hover:text-slate-600 border-b-2 border-transparent'
-            }`}
-          >
-            <UserPlus className="w-4 h-4" />
-            Регистрация
-          </button>
+        {/* Header */}
+        <div className="flex items-center gap-3 p-6 pb-4 border-b border-slate-100">
+          {step === 'code' && (
+            <button
+              onClick={() => { setStep('phone'); setError(null); setCode(''); }}
+              className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          )}
+          <div>
+            <h2 className="text-slate-900 text-lg font-black tracking-tight">
+              {step === 'phone' ? 'Вход по номеру' : 'Код подтверждения'}
+            </h2>
+            <p className="text-slate-400 text-xs mt-0.5">
+              {step === 'phone'
+                ? 'Введите номер телефона для входа'
+                : `Код отправлен на ${phone}`}
+            </p>
+          </div>
         </div>
 
         {/* Error message */}
@@ -143,93 +128,78 @@ export default function AuthModal({ isOpen, initialTab = 'login', onClose, onLog
           </div>
         )}
 
-        {/* Login form */}
-        {tab === 'login' && (
-          <form onSubmit={handleLogin} className="p-6 flex flex-col gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                Логин
-              </label>
-              <input
-                type="text"
-                value={loginUsername}
-                onChange={(e) => setLoginUsername(e.target.value)}
-                placeholder="Введите логин"
-                required
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                Пароль
-              </label>
-              <input
-                type="password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="Введите пароль"
-                required
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-2 py-3 bg-[#E11D48] hover:bg-rose-600 text-white font-bold text-sm rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-            >
-              {loading ? 'Входим...' : 'Войти'}
-            </button>
-          </form>
-        )}
-
-        {/* Register form */}
-        {tab === 'register' && (
-          <form onSubmit={handleRegister} className="p-6 flex flex-col gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                Логин
-              </label>
-              <input
-                type="text"
-                value={regUsername}
-                onChange={(e) => setRegUsername(e.target.value)}
-                placeholder="Придумайте логин"
-                required
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                Пароль
-              </label>
-              <input
-                type="password"
-                value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
-                placeholder="Минимум 8 символов"
-                required
-                minLength={8}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
-              />
-            </div>
+        {/* Step 1: Phone input */}
+        {step === 'phone' && (
+          <form onSubmit={handleRequestCode} className="p-6 flex flex-col gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                 Телефон
               </label>
-              <input
-                type="tel"
-                value={regPhone}
-                onChange={(e) => setRegPhone(formatPhone(e.target.value))}
-                placeholder="+7 (___) ___-__-__"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
-              />
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(formatPhone(e.target.value))}
+                  placeholder="+7 (___) ___-__-__"
+                  className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
+                  autoFocus
+                />
+              </div>
             </div>
             <button
               type="submit"
-              disabled={loading}
-              className="w-full mt-2 py-3 bg-[#E11D48] hover:bg-rose-600 text-white font-bold text-sm rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+              disabled={loading || !isPhoneValid}
+              className="w-full mt-2 py-3 bg-[#E11D48] hover:bg-rose-600 text-white font-bold text-sm rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              {loading ? 'Регистрируем...' : 'Зарегистрироваться'}
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Отправляем...</>
+              ) : (
+                'Получить код'
+              )}
+            </button>
+          </form>
+        )}
+
+        {/* Step 2: Code input */}
+        {step === 'code' && (
+          <form onSubmit={handleVerifyCode} className="p-6 flex flex-col gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                Код из SMS
+              </label>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="1234"
+                  className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 tracking-[0.5em] text-center font-mono text-lg focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !isCodeValid}
+              className="w-full mt-2 py-3 bg-[#E11D48] hover:bg-rose-600 text-white font-bold text-sm rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Проверяем...</>
+              ) : (
+                'Подтвердить'
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={loading}
+              className="text-center text-xs text-slate-400 hover:text-[#E11D48] transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Отправить код повторно
             </button>
           </form>
         )}

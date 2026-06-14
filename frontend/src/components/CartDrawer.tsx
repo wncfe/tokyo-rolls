@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, Store, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { CartItem, MenuItem, RestaurantSettings, CheckoutData } from '../types';
-import { submitOrder, validatePromo } from '../api';
-import DadataAddressInput from './DadataAddressInput';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, Store, CheckCircle, AlertCircle, Loader2, ShieldAlert } from 'lucide-react';
+import { CartItem, MenuItem, RestaurantSettings, CheckoutData, User, Address } from '../types';
+import { submitOrder, validatePromo, createAddress, updateAddress, deleteAddress } from '../api';
+import AddressList from './AddressList';
+import AddressFormModal from './AddressFormModal';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -15,6 +16,10 @@ interface CartDrawerProps {
   settings: RestaurantSettings;
   orderType: 'delivery' | 'pickup';
   onOrderTypeChange: (type: 'delivery' | 'pickup') => void;
+  user: User | null;
+  addresses: Address[];
+  onOpenAuth: () => void;
+  onRefreshAddresses: () => Promise<void>;
 }
 
 export default function CartDrawer({
@@ -28,14 +33,23 @@ export default function CartDrawer({
   settings,
   orderType,
   onOrderTypeChange,
+  user,
+  addresses,
+  onOpenAuth,
+  onRefreshAddresses,
 }: CartDrawerProps) {
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [promoCode, setPromoCode] = useState('');
   const [promoData, setPromoData] = useState<{ discount_percent: number; description: string } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+
+  // Address management
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
   if (!isOpen) return null;
 
@@ -66,7 +80,6 @@ export default function CartDrawer({
     try {
       const items: CheckoutData['items'] = cart.map(item => {
         const product = item.product;
-        // Distinguish Product from Set: Product has 'category', Set has 'includedProducts'
         if ('category' in product) {
           return { product_slug: product.id, quantity: item.quantity };
         } else {
@@ -75,14 +88,20 @@ export default function CartDrawer({
       });
 
       const orderData: CheckoutData = {
-        customer_name: '',
-        customer_phone: '',
-        delivery_address: orderType === 'delivery' ? deliveryAddress : undefined,
         comment: '',
         promo_code: promoData ? promoCode.trim() : '',
         order_type: orderType,
         items,
       };
+
+      // Use saved address if available, fall back to raw string
+      if (orderType === 'delivery') {
+        if (selectedAddressId) {
+          orderData.address_id = selectedAddressId;
+        } else if (deliveryAddress.trim()) {
+          orderData.delivery_address = deliveryAddress.trim();
+        }
+      }
 
       await submitOrder(orderData);
       setOrderSuccess(true);
@@ -252,8 +271,9 @@ export default function CartDrawer({
           const promoDiscountAmount = promoData ? Math.round(subtotal * promoData.discount_percent / 100) : 0;
           const effectiveTotal = totalPrice - promoDiscountAmount;
           const isTooLow = effectiveTotal < minOrder;
-          const isAddressEmpty = orderType === 'delivery' && deliveryAddress.trim().length === 0;
-          const canCheckout = isOpenStatus && !isTooLow && !isAddressEmpty && !isSubmitting;
+          const isAddressEmpty = orderType === 'delivery' && !selectedAddressId && deliveryAddress.trim().length === 0;
+          const isAuthenticated = !!user;
+          const canCheckout = isOpenStatus && !isTooLow && !isAddressEmpty && !isSubmitting && isAuthenticated;
 
           let btnText = "Оформить заказ";
           let btnClasses = "w-full py-4 font-bold text-xs md:text-sm uppercase rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 border border-transparent select-none";
@@ -261,6 +281,9 @@ export default function CartDrawer({
           if (isSubmitting) {
             btnText = "Оформляем...";
             btnClasses += " bg-slate-700 text-white cursor-wait";
+          } else if (!isAuthenticated) {
+            btnText = "Авторизоваться";
+            btnClasses += " bg-[#E11D48] hover:bg-rose-600 text-white shadow-xl hover:shadow-rose-200 active:scale-98 cursor-pointer";
           } else if (!isOpenStatus) {
             btnText = `Заказы принимаются с ${settings.opening_hour}:00`;
             btnClasses += " bg-orange-100 border border-orange-200 text-orange-600 cursor-not-allowed opacity-90";
@@ -268,7 +291,7 @@ export default function CartDrawer({
             btnText = `Минималка ${minOrder} ₽ • Ещё ${minOrder - effectiveTotal} ₽`;
             btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
           } else if (isAddressEmpty) {
-            btnText = "Укажите адрес доставки";
+            btnText = "Добавьте адрес доставки";
             btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
           } else {
             btnClasses += " bg-slate-950 hover:bg-slate-800 text-white shadow-xl hover:shadow-slate-200 active:scale-98 cursor-pointer";
@@ -302,7 +325,17 @@ export default function CartDrawer({
                   )}
 
                   {/* Conditional alerts */}
-                  {!isOpenStatus ? (
+                  {!isAuthenticated ? (
+                    <div className="mb-4 bg-amber-50 border border-amber-200 p-4 rounded-2xl flex flex-col gap-2 animate-fadeIn">
+                      <div className="flex items-center gap-2 text-amber-800">
+                        <ShieldAlert className="w-5 h-5 shrink-0" />
+                        <span className="text-xs font-bold">Авторизуйтесь, чтобы оформить заказ</span>
+                      </div>
+                      <p className="text-[10px] text-amber-600 leading-relaxed">
+                        Войдите по номеру телефона — это займёт меньше минуты. Ваша корзина сохранится.
+                      </p>
+                    </div>
+                  ) : !isOpenStatus ? (
                     <div className="mb-4 bg-orange-50 border border-orange-100/70 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-orange-800 select-none animate-fadeIn">
                       <span className="font-bold flex items-center gap-1.5">⏳ Ресторан закрыт</span>
                       <span>Принимаем онлайн-заказы ежедневно с {settings.opening_hour}:00 до {settings.closing_hour}:00.</span>
@@ -311,11 +344,6 @@ export default function CartDrawer({
                     <div className="mb-4 bg-rose-50 border border-rose-100 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-[#E11D48] select-none animate-fadeIn">
                       <span className="font-bold flex items-center gap-1.5">🍅 Минимальная сумма заказа</span>
                       <span>Добавь в корзину блюд еще на <strong className="font-black">{(minOrder - effectiveTotal).toLocaleString('ru-RU')} ₽</strong> для оформления заказа.</span>
-                    </div>
-                  ) : isAddressEmpty ? (
-                    <div className="mb-4 bg-amber-50 border border-amber-100/70 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-amber-800 select-none animate-fadeIn">
-                      <span className="font-bold flex items-center gap-1.5">📍 Укажите адрес доставки</span>
-                      <span>Начните вводить улицу и дом — мы подскажем точный адрес для курьера.</span>
                     </div>
                   ) : orderType === 'pickup' ? (
                     <div className="mb-4 bg-violet-50 border border-violet-100/70 p-3.5 rounded-2xl text-xs text-violet-800 flex flex-col gap-0.5 animate-fadeIn">
@@ -329,14 +357,21 @@ export default function CartDrawer({
                     </div>
                   )}
 
-                  {/* Delivery Address Input (only for delivery) */}
-                  {orderType === 'delivery' && (
-                    <div className="mb-4">
-                      <DadataAddressInput
-                        value={deliveryAddress}
-                        onChange={setDeliveryAddress}
-                      />
-                    </div>
+                  {/* Address selection (only for authenticated users + delivery) */}
+                  {isAuthenticated && orderType === 'delivery' && (
+                    <AddressList
+                      addresses={addresses}
+                      selectedAddressId={selectedAddressId}
+                      onSelect={setSelectedAddressId}
+                      onAddNew={() => {
+                        setEditingAddress(null);
+                        setIsAddressModalOpen(true);
+                      }}
+                      onEdit={(addr) => {
+                        setEditingAddress(addr);
+                        setIsAddressModalOpen(true);
+                      }}
+                    />
                   )}
 
                   {/* Promo Code */}
@@ -402,8 +437,8 @@ export default function CartDrawer({
 
                   {/* Checkout Action Button */}
                   <button
-                    onClick={handleCheckout}
-                    disabled={!canCheckout}
+                    onClick={!isAuthenticated ? onOpenAuth : handleCheckout}
+                    disabled={!canCheckout && isAuthenticated}
                     className={btnClasses}
                   >
                     {isSubmitting ? (
@@ -420,6 +455,30 @@ export default function CartDrawer({
         })()}
 
       </div>
+
+      {/* Address Form Modal */}
+      <AddressFormModal
+        isOpen={isAddressModalOpen}
+        address={editingAddress}
+        onClose={() => {
+          setIsAddressModalOpen(false);
+          setEditingAddress(null);
+        }}
+        onSave={async (data) => {
+          if (editingAddress) {
+            await updateAddress(editingAddress.id, data);
+          } else {
+            const addr = await createAddress(data);
+            setSelectedAddressId(addr.id);
+          }
+          await onRefreshAddresses();
+        }}
+        onDelete={async (id) => {
+          await deleteAddress(id);
+          if (selectedAddressId === id) setSelectedAddressId(null);
+          await onRefreshAddresses();
+        }}
+      />
     </div>
   );
 }

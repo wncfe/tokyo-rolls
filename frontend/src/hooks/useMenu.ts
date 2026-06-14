@@ -15,6 +15,7 @@ export function useMenu() {
     delivery_time_min: 45,
     delivery_time_max: 60,
     restaurant_address: '',
+    is_open: true,
   });
 
   useEffect(() => {

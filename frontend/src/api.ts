@@ -1,4 +1,4 @@
-import { Product, Set, MenuItem, AuthTokens, LoginData, RegisterData, User, RestaurantSettings, CheckoutData } from './types';
+import { Product, Set, MenuItem, AuthTokens, PhoneAuthData, VerifyCodeData, User, Address, AddressFormData, RestaurantSettings, CheckoutData } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -166,26 +166,26 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-// ─── Auth API ───
+// ─── Auth API (Passwordless) ───
 
-export async function loginUser(data: LoginData): Promise<AuthTokens> {
-  const response = await fetch(`${API_BASE_URL}/token/`, {
+export async function requestCode(phone: string): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_BASE_URL}/auth/request-code/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  const tokens = await handleResponse<AuthTokens>(response);
-  setStoredToken(tokens);
-  return tokens;
-}
-
-export async function registerUser(data: RegisterData): Promise<{ id: number; username: string }> {
-  const response = await fetch(`${API_BASE_URL}/auth/register/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ phone }),
   });
   return handleResponse(response);
+}
+
+export async function verifyCode(data: VerifyCodeData): Promise<AuthTokens & { user: User }> {
+  const response = await fetch(`${API_BASE_URL}/auth/verify-code/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const tokens = await handleResponse<AuthTokens & { user: User }>(response);
+  setStoredToken({ access: tokens.access, refresh: tokens.refresh });
+  return tokens;
 }
 
 export async function fetchProfile(): Promise<User> {
@@ -195,13 +195,42 @@ export async function fetchProfile(): Promise<User> {
   return handleResponse(response);
 }
 
-export async function updateProfile(data: Partial<User>): Promise<User> {
-  const response = await fetch(`${API_BASE_URL}/auth/profile/`, {
+// ─── Address CRUD ───
+
+export async function fetchAddresses(): Promise<Address[]> {
+  const response = await fetch(`${API_BASE_URL}/addresses/`, {
+    headers: authHeaders(),
+  });
+  return handleResponse(response);
+}
+
+export async function createAddress(data: AddressFormData): Promise<Address> {
+  const response = await fetch(`${API_BASE_URL}/addresses/`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+}
+
+export async function updateAddress(id: number, data: Partial<AddressFormData>): Promise<Address> {
+  const response = await fetch(`${API_BASE_URL}/addresses/${id}/`, {
     method: 'PATCH',
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
   return handleResponse(response);
+}
+
+export async function deleteAddress(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/addresses/${id}/`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail || 'Failed to delete address');
+  }
 }
 
 export async function refreshToken(): Promise<{ access: string }> {

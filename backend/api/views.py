@@ -1,14 +1,19 @@
 import os
+import re
+from datetime import timedelta
 import requests
 from django.http import JsonResponse
 from django.db.models import Prefetch
+from django.utils import timezone
+from django.contrib.auth.models import User
 from rest_framework import viewsets, filters, generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import Category, SubCategory, Product, Set, UserProfile, Order, RestaurantSettings
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import Address, Category, SubCategory, Product, Set, UserProfile, Order, RestaurantSettings
 from .serializers import (
-    CategorySerializer, SubCategorySerializer, ProductSerializer, SetSerializer,
-    RegisterSerializer, UserProfileSerializer,
+    AddressSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, SetSerializer,
+    PhoneRequestSerializer, CodeVerifySerializer, UserProfileSerializer,
     OrderWriteSerializer, OrderReadSerializer,
     RestaurantSettingsSerializer, PromoCodeValidateSerializer,
 )
@@ -138,19 +143,77 @@ def get_categories_with_products(request):
     return Response(data)
 
 
-class RegisterView(generics.CreateAPIView):
-    """Регистрация нового пользователя."""
-    serializer_class = RegisterSerializer
-    permission_classes = [permissions.AllowAny]
+# ─── Passwordless Auth ───
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({
+def _normalize_phone(phone: str) -> str:
+    """Нормализовать телефон: убрать всё кроме + и цифр → +79123456789."""
+    digits = re.sub(r'[^\d+]', '', phone)
+    if digits.startswith('8'):
+        digits = '+7' + digits[1:]
+    elif digits.startswith('7') and not digits.startswith('+'):
+        digits = '+' + digits
+    return digits
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def request_code(request):
+    """Запросить код подтверждения по номеру телефона. Код всегда 1234 (заглушка)."""
+    serializer = PhoneRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    phone = _normalize_phone(serializer.validated_data['phone'])
+
+    # Найти или создать профиль по телефону
+    profile = UserProfile.objects.filter(phone=phone).first()
+    if not profile:
+        # Новый пользователь — создаём Django User и профиль
+        user = User.objects.create_user(
+            username=phone,
+            password=None,  # unusable password
+        )
+        user.set_unusable_password()
+        user.save()
+        profile = UserProfile.objects.create(user=user, phone=phone)
+
+    # Установить код (хардкод 1234)
+    profile.verification_code = '1234'
+    profile.code_sent_at = timezone.now()
+    profile.save(update_fields=['verification_code', 'code_sent_at'])
+
+    return Response({'success': True, 'detail': 'Код отправлен'})
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def verify_code(request):
+    """Подтвердить код и получить JWT-токены. Если пользователь новый — авто-создаётся."""
+    serializer = CodeVerifySerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    phone = _normalize_phone(serializer.validated_data['phone'])
+    code = serializer.validated_data['code']
+
+    profile = UserProfile.objects.filter(phone=phone).first()
+    if not profile:
+        return Response({'detail': 'Пользователь с таким номером не найден. Сначала запросите код.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    if profile.verification_code != code:
+        return Response({'detail': 'Неверный код подтверждения.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    # Код верный — очищаем и выдаём токены
+    profile.verification_code = ''
+    profile.save(update_fields=['verification_code'])
+
+    user = profile.user
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+        'user': {
             'id': user.id,
-            'username': user.username,
-        }, status=status.HTTP_201_CREATED)
+            'phone': profile.phone,
+        },
+    })
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):
@@ -163,15 +226,39 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return profile
 
 
+# ─── Address CRUD ───
+
+class AddressViewSet(viewsets.ModelViewSet):
+    """CRUD сохранённых адресов текущего пользователя."""
+    serializer_class = AddressSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
 class CheckoutView(generics.CreateAPIView):
-    """Оформление заказа из корзины."""
+    """Оформление заказа из корзины (только для авторизованных)."""
     serializer_class = OrderWriteSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        order = serializer.save()
+
+        # Автозаполнение данных из профиля
+        extra = {}
+        if not serializer.validated_data.get('customer_name'):
+            extra['customer_name'] = request.user.username
+        if not serializer.validated_data.get('customer_phone'):
+            profile = UserProfile.objects.filter(user=request.user).first()
+            if profile and profile.phone:
+                extra['customer_phone'] = profile.phone
+
+        order = serializer.save(**extra)
         return Response(
             OrderReadSerializer(order).data,
             status=status.HTTP_201_CREATED,
@@ -214,10 +301,8 @@ def dadata_suggest(request):
 
     api_key = os.environ.get('DADATA_API_KEY', '')
     if not api_key:
-        return Response(
-            {'detail': 'DADATA_API_KEY not configured on server.'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+        # Возвращаем пустой список без ошибки — поле остаётся ручным вводом
+        return Response([], status=status.HTTP_200_OK)
 
     try:
         resp = requests.post(

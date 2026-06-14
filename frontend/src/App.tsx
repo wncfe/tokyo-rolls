@@ -8,7 +8,7 @@ import AuthModal from "./components/AuthModal";
 import HeroBanner from "./components/HeroBanner";
 import MenuSections from "./components/MenuSections";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { MenuItem, LoginData, RegisterData } from "./types";
+import { MenuItem } from "./types";
 import { useCart } from "./hooks/useCart";
 import { useAuth } from "./hooks/useAuth";
 import { useMenu } from "./hooks/useMenu";
@@ -18,7 +18,7 @@ import { useRestaurantStatus } from "./hooks/useRestaurantStatus";
 export default function App() {
   // Hooks
   const { cart, addToCart, removeFromCart, clearItem, getQuantity } = useCart();
-  const { user, login, register, logout } = useAuth();
+  const { user, addresses, loginWithPhone, verifyPhoneCode, logout, refreshAddresses } = useAuth();
   const {
     menuData,
     isLoadingMenu,
@@ -36,21 +36,20 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [orderType, setOrderType] = useState<"delivery" | "pickup">("delivery");
 
-  // Auth handlers
-  const handleLogin = async (data: LoginData) => {
-    await login(data);
-    setIsAuthModalOpen(false);
+  // Auth handlers (passwordless)
+  const handleRequestCode = async (phone: string) => {
+    await loginWithPhone(phone);
   };
 
-  const handleRegister = async (data: RegisterData) => {
-    await register(data);
+  const handleVerifyCode = async (phone: string, code: string) => {
+    await verifyPhoneCode(phone, code);
     setIsAuthModalOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-rose-500 selection:text-white pb-32">
       <Header
-        user={user ? { username: user.username } : null}
+        user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onLogout={logout}
         orderType={orderType}
@@ -136,6 +135,10 @@ export default function App() {
         settings={restaurantSettings}
         orderType={orderType}
         onOrderTypeChange={setOrderType}
+        user={user}
+        addresses={addresses}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onRefreshAddresses={refreshAddresses}
         onAddToCart={(id) => {
           const prod = findProductById(id);
           if (prod) addToCart(prod);
@@ -154,8 +157,8 @@ export default function App() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
+        onRequestCode={handleRequestCode}
+        onVerifyCode={handleVerifyCode}
       />
     </div>
   );

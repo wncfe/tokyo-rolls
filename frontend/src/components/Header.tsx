@@ -1,7 +1,8 @@
 import { User, LogOut, Truck, Store } from 'lucide-react';
+import { User as UserType } from '../types';
 
 interface HeaderProps {
-  user: { username: string } | null;
+  user: UserType | null;
   onOpenAuth: () => void;
   onLogout: () => void;
   orderType: 'delivery' | 'pickup';
@@ -65,7 +66,7 @@ export default function Header({ user, onOpenAuth, onLogout, orderType, onOrderT
           {user ? (
             <div className="flex items-center gap-2">
               <span className="hidden sm:inline text-sm font-medium text-slate-700">
-                {user.username}
+                {user.phone}
               </span>
               <button
                 onClick={onLogout}
