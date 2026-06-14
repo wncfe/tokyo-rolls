@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { MapPin, Loader2 } from 'lucide-react';
 import { suggestAddress, DaDataSuggestion } from '../utils/dadata';
 
@@ -16,9 +17,11 @@ export default function DadataAddressInput({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Синхронизировать внешнее значение (например, при очистке из родителя)
@@ -26,12 +29,15 @@ export default function DadataAddressInput({
     setInputValue(value);
   }, [value]);
 
-  // Закрыть выпадашку при клике снаружи
+  // Закрыть выпадашку при клике снаружи (и контейнера, и самого дропдауна в портале)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
       if (
         containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
+        !containerRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
       ) {
         setIsOpen(false);
       }
@@ -39,6 +45,31 @@ export default function DadataAddressInput({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Пересчитывать позицию выпадашки при открытии, скролле и ресайзе
+  const updateDropdownPosition = useCallback(() => {
+    if (!inputRef.current) return;
+    const rect = inputRef.current.getBoundingClientRect();
+    setDropdownStyle({
+      position: 'fixed',
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+      zIndex: 9999,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updateDropdownPosition();
+      window.addEventListener('scroll', updateDropdownPosition, true);
+      window.addEventListener('resize', updateDropdownPosition);
+      return () => {
+        window.removeEventListener('scroll', updateDropdownPosition, true);
+        window.removeEventListener('resize', updateDropdownPosition);
+      };
+    }
+  }, [isOpen, updateDropdownPosition]);
 
   // Debounced запрос к DaData
   const fetchSuggestions = useCallback((q: string) => {
@@ -108,7 +139,10 @@ export default function DadataAddressInput({
           value={inputValue}
           onChange={handleInputChange}
           onFocus={() => {
-            if (suggestions.length > 0) setIsOpen(true);
+            if (suggestions.length > 0) {
+              updateDropdownPosition();
+              setIsOpen(true);
+            }
           }}
           onKeyDown={handleKeyDown}
           placeholder="Введите адрес доставки"
@@ -119,40 +153,46 @@ export default function DadataAddressInput({
         )}
       </div>
 
-      {/* Выпадашка с подсказками */}
-      {isOpen && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 bottom-full mb-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-56 overflow-y-auto z-50">
-          {suggestions.map((s, idx) => (
-            <button
-              key={s.value}
-              type="button"
-              onClick={() => handleSelect(s)}
-              onMouseEnter={() => setHighlightIndex(idx)}
-              className={`w-full text-left px-4 py-2.5 text-xs transition-colors cursor-pointer border-b border-slate-50 last:border-b-0 ${
-                idx === highlightIndex
-                  ? 'bg-slate-100 text-slate-900'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <span className="block truncate">{s.value}</span>
-            </button>
-          ))}
-          {/* Powered by DaData */}
-          <div className="px-4 py-1.5 bg-slate-50/50 border-t border-slate-100">
-            <span className="text-[9px] text-slate-400 font-mono select-none">
-              Подсказки —{' '}
-              <a
-                href="https://dadata.ru"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-slate-500 hover:text-slate-700 underline underline-offset-2"
+      {/* Выпадашка с подсказками — рендерится в body через портал, чтобы не обрезалась модалками */}
+      {isOpen && suggestions.length > 0 &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            style={dropdownStyle}
+            className="bg-white border border-slate-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto"
+          >
+            {suggestions.map((s, idx) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => handleSelect(s)}
+                onMouseEnter={() => setHighlightIndex(idx)}
+                className={`w-full text-left px-4 py-2.5 text-xs transition-colors cursor-pointer border-b border-slate-50 last:border-b-0 ${
+                  idx === highlightIndex
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
               >
-                DaData.ru
-              </a>
-            </span>
-          </div>
-        </div>
-      )}
+                <span className="block truncate">{s.value}</span>
+              </button>
+            ))}
+            {/* Powered by DaData */}
+            <div className="px-4 py-1.5 bg-slate-50/50 border-t border-slate-100">
+              <span className="text-[9px] text-slate-400 font-mono select-none">
+                Подсказки —{' '}
+                <a
+                  href="https://dadata.ru"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-slate-500 hover:text-slate-700 underline underline-offset-2"
+                >
+                  DaData.ru
+                </a>
+              </span>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
