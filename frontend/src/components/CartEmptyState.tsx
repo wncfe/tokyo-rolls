@@ -6,7 +6,7 @@ interface CartEmptyStateProps {
 
 export default function CartEmptyState({ onClose }: CartEmptyStateProps) {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center py-10 select-none animate-fadeIn">
+    <div className="min-h-[50vh] flex flex-col items-center justify-center text-center py-10 select-none animate-fadeIn">
       <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4 border border-slate-200">
         <ShoppingBag className="w-7 h-7 text-slate-400" />
       </div>

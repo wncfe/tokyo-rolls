@@ -59,10 +59,10 @@ export default function CartDrawer({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-slate-200 shadow-2xl flex flex-col justify-between animate-slideIn"
+        className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-slate-200 shadow-2xl flex flex-col animate-slideIn"
       >
-        {/* HEADER */}
-        <div className="p-5 border-b border-slate-150 flex items-center justify-between">
+        {/* HEADER — stays fixed at top for close button access */}
+        <div className="p-5 border-b border-slate-150 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#E11D48]" />
             <h2 className="text-slate-900 text-lg font-black tracking-tight select-none">
@@ -83,78 +83,81 @@ export default function CartDrawer({
           </button>
         </div>
 
-        {/* ORDER TYPE TOGGLE */}
-        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-0.5 select-none">
-            <button
-              onClick={() => onOrderTypeChange('delivery')}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
-                orderType === 'delivery'
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <Truck className="w-4 h-4 shrink-0" />
-              <span>Доставка</span>
-            </button>
-            <button
-              onClick={() => onOrderTypeChange('pickup')}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
-                orderType === 'pickup'
-                  ? 'bg-[#E11D48] text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <Store className="w-4 h-4 shrink-0" />
-              <span>Самовывоз –10%</span>
-            </button>
+        {/* SCROLLABLE BODY — everything scrolls as one unit */}
+        <div className="flex-1 overflow-y-auto">
+          {/* ORDER TYPE TOGGLE */}
+          <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50">
+            <div className="flex items-center bg-white border border-slate-200 rounded-xl p-0.5 select-none">
+              <button
+                onClick={() => onOrderTypeChange('delivery')}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
+                  orderType === 'delivery'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Truck className="w-4 h-4 shrink-0" />
+                <span>Доставка</span>
+              </button>
+              <button
+                onClick={() => onOrderTypeChange('pickup')}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
+                  orderType === 'pickup'
+                    ? 'bg-[#E11D48] text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <Store className="w-4 h-4 shrink-0" />
+                <span>Самовывоз –10%</span>
+              </button>
+            </div>
+            {orderType === 'pickup' && settings.restaurant_address && (
+              <p className="mt-2 text-[10px] text-slate-500 text-center font-medium">
+                🥡 Самовывоз: {settings.restaurant_address}
+              </p>
+            )}
           </div>
-          {orderType === 'pickup' && settings.restaurant_address && (
-            <p className="mt-2 text-[10px] text-slate-500 text-center font-medium">
-              🥡 Самовывоз: {settings.restaurant_address}
-            </p>
+
+          {/* CART LIST OR EMPTY STATE */}
+          <div className="p-5 space-y-4">
+            {cart.length === 0 ? (
+              <CartEmptyState onClose={onClose} />
+            ) : (
+              cart.map((item) => (
+                <CartItemRow
+                  key={item.product.id}
+                  item={item}
+                  onAddToCart={onAddToCart}
+                  onRemoveFromCart={onRemoveFromCart}
+                  onClearItem={onClearItem}
+                />
+              ))
+            )}
+          </div>
+
+          {/* FOOTER / ORDER SUCCESS — part of the scroll flow */}
+          {checkout.orderSuccess ? (
+            <OrderSuccess onClose={onClose} />
+          ) : cart.length > 0 && (
+            <CheckoutFooter
+              cart={cart}
+              subtotal={subtotal}
+              totalItems={totalItems}
+              pickupDiscount={pickupDiscount}
+              totalPrice={totalPrice}
+              settings={settings}
+              orderType={orderType}
+              isOpenStatus={isOpenStatus}
+              user={user}
+              addresses={addresses}
+              onOpenAuth={onOpenAuth}
+              onClearCart={onClearCart}
+              onRefreshAddresses={onRefreshAddresses}
+              checkout={checkout}
+              addr={addr}
+            />
           )}
         </div>
-
-        {/* CART LIST OR EMPTY STATE */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {cart.length === 0 ? (
-            <CartEmptyState onClose={onClose} />
-          ) : (
-            cart.map((item) => (
-              <CartItemRow
-                key={item.product.id}
-                item={item}
-                onAddToCart={onAddToCart}
-                onRemoveFromCart={onRemoveFromCart}
-                onClearItem={onClearItem}
-              />
-            ))
-          )}
-        </div>
-
-        {/* FOOTER */}
-        {checkout.orderSuccess ? (
-          <OrderSuccess onClose={onClose} />
-        ) : cart.length > 0 && (
-          <CheckoutFooter
-            cart={cart}
-            subtotal={subtotal}
-            totalItems={totalItems}
-            pickupDiscount={pickupDiscount}
-            totalPrice={totalPrice}
-            settings={settings}
-            orderType={orderType}
-            isOpenStatus={isOpenStatus}
-            user={user}
-            addresses={addresses}
-            onOpenAuth={onOpenAuth}
-            onClearCart={onClearCart}
-            onRefreshAddresses={onRefreshAddresses}
-            checkout={checkout}
-            addr={addr}
-          />
-        )}
       </div>
     </div>
   );

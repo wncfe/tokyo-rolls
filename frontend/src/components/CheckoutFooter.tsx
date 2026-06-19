@@ -1,7 +1,7 @@
 import { ArrowRight, AlertCircle, Loader2, ShieldAlert } from 'lucide-react';
 import { CartItem, RestaurantSettings, User, Address } from '../types';
 import { createAddress, updateAddress, deleteAddress } from '../api';
-import AddressList from './AddressList';
+import AddressDropdown from './AddressDropdown';
 import AddressFormModal from './AddressFormModal';
 
 interface CheckoutHook {
@@ -116,7 +116,7 @@ export default function CheckoutFooter({
 
   // ── Footer form ──────────────────────────────────────
   return (
-    <div className="p-5 border-t border-slate-100 bg-white">
+    <div className="p-5 bg-white">
       {/* Order error */}
       {orderError && (
         <div className="mb-4 bg-red-50 border border-red-200 p-3.5 rounded-2xl text-xs flex items-start gap-2 text-red-800 animate-fadeIn">
@@ -160,7 +160,7 @@ export default function CheckoutFooter({
 
       {/* Address selection (only for authenticated users + delivery) */}
       {isAuthenticated && orderType === 'delivery' && (
-        <AddressList
+        <AddressDropdown
           addresses={addresses}
           selectedAddressId={selectedAddressId}
           onSelect={setSelectedAddressId}
