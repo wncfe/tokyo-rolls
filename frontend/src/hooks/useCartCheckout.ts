@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckoutData, CartItem } from '../types';
+import { CheckoutData, CartItem, PaymentMethod } from '../types';
 import { submitOrder, validatePromo } from '../api';
 
 interface CheckoutParams {
@@ -7,6 +7,7 @@ interface CheckoutParams {
   orderType: 'delivery' | 'pickup';
   selectedAddressId: number | null;
   deliveryAddress: string;
+  paymentMethod: PaymentMethod;
   onClearCart: () => void;
 }
 
@@ -17,6 +18,7 @@ export function useCartCheckout(isOpen: boolean) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card_online');
 
   // Reset order states when drawer opens
   useEffect(() => {
@@ -45,7 +47,7 @@ export function useCartCheckout(isOpen: boolean) {
     }
   };
 
-  const handleCheckout = async ({ cart, orderType, selectedAddressId, deliveryAddress, onClearCart }: CheckoutParams) => {
+  const handleCheckout = async ({ cart, orderType, selectedAddressId, deliveryAddress, paymentMethod: pm, onClearCart }: CheckoutParams) => {
     setOrderError(null);
     setIsSubmitting(true);
     try {
@@ -62,6 +64,7 @@ export function useCartCheckout(isOpen: boolean) {
         comment: '',
         promo_code: promoData ? promoCode.trim() : '',
         order_type: orderType,
+        payment_method: pm,
         items,
       };
 
@@ -92,6 +95,7 @@ export function useCartCheckout(isOpen: boolean) {
     isSubmitting,
     orderSuccess, setOrderSuccess,
     orderError, setOrderError,
+    paymentMethod, setPaymentMethod,
     handlePromoApply,
     handleCheckout,
   };

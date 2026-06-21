@@ -157,8 +157,8 @@ class PromoCodeAdmin(ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(ModelAdmin):
-    list_display = ('id', 'status', 'customer_phone', 'total', 'created_at')
-    list_filter = ('status', 'created_at')
+    list_display = ('id', 'status', 'payment_method', 'customer_phone', 'total', 'created_at')
+    list_filter = ('status', 'payment_method', 'created_at')
     readonly_fields = ('subtotal', 'discount_amount', 'delivery_fee', 'total', 'created_at')
     inlines = [OrderItemInline]
 

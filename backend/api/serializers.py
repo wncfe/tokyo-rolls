@@ -208,6 +208,10 @@ class OrderWriteSerializer(serializers.ModelSerializer):
     items = OrderItemWriteSerializer(many=True)
     promo_code = serializers.CharField(max_length=32, required=False, allow_blank=True, write_only=True)
     order_type = serializers.ChoiceField(choices=[('delivery', 'Доставка'), ('pickup', 'Самовывоз')], default='delivery')
+    payment_method = serializers.ChoiceField(
+        choices=[('cash', 'Наличные'), ('card_delivery', 'Картой при получении'), ('card_online', 'Картой онлайн')],
+        default='card_online',
+    )
     address_id = serializers.IntegerField(required=False, write_only=True)
     customer_name = serializers.CharField(max_length=100, required=False, allow_blank=True)
     customer_phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
@@ -216,7 +220,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'customer_name', 'customer_phone', 'delivery_address',
-            'comment', 'promo_code', 'order_type', 'address_id', 'items',
+            'comment', 'promo_code', 'order_type', 'payment_method', 'address_id', 'items',
         ]
 
     def validate(self, attrs):
@@ -383,7 +387,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'id', 'status', 'customer_name', 'customer_phone',
-            'delivery_address', 'comment', 'order_type',
+            'delivery_address', 'comment', 'order_type', 'payment_method',
             'subtotal', 'discount_amount', 'delivery_fee', 'total',
             'created_at', 'items',
         ]

@@ -473,18 +473,32 @@ class Order(models.Model):
     """Заказ из корзины (CartDrawer)."""
 
     class Status(models.TextChoices):
+        UNPAID = 'unpaid', 'Не оплачен'
         PENDING = 'pending', 'Новый'
         CONFIRMED = 'confirmed', 'Подтверждён'
         PREPARING = 'preparing', 'Готовится'
+        READY = 'ready', 'Можно забирать'
         DELIVERING = 'delivering', 'В доставке'
+        DELIVERED = 'delivered', 'Доставлен'
         COMPLETED = 'completed', 'Выполнен'
         CANCELLED = 'cancelled', 'Отменён'
+
+    class PaymentMethod(models.TextChoices):
+        CASH = 'cash', 'Наличные'
+        CARD_DELIVERY = 'card_delivery', 'Картой при получении'
+        CARD_ONLINE = 'card_online', 'Картой онлайн'
 
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.PENDING,
         verbose_name='Статус',
+    )
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CARD_ONLINE,
+        verbose_name='Способ оплаты',
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

@@ -108,6 +108,7 @@ export interface CheckoutData {
   comment: string;
   promo_code: string;
   order_type: 'delivery' | 'pickup';
+  payment_method?: PaymentMethod;
   items: CheckoutItem[];
 }
 
@@ -116,3 +117,5 @@ export interface CheckoutItem {
   set_slug?: string;
   quantity: number;
 }
+
+export type PaymentMethod = 'cash' | 'card_delivery' | 'card_online';

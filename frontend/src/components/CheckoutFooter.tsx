@@ -1,8 +1,9 @@
-import { ArrowRight, AlertCircle, Loader2, ShieldAlert } from 'lucide-react';
-import { CartItem, RestaurantSettings, User, Address } from '../types';
+import { ArrowRight, AlertCircle, Loader2, ShieldAlert, ChevronDown, Banknote, CreditCard, Globe } from 'lucide-react';
+import { CartItem, RestaurantSettings, User, Address, PaymentMethod } from '../types';
 import { createAddress, updateAddress, deleteAddress } from '../api';
 import AddressDropdown from './AddressDropdown';
 import AddressFormModal from './AddressFormModal';
+import { useState, useRef, useEffect } from 'react';
 
 interface CheckoutHook {
   promoCode: string;
@@ -12,12 +13,15 @@ interface CheckoutHook {
   setPromoError: (v: string | null) => void;
   isSubmitting: boolean;
   orderError: string | null;
+  paymentMethod: PaymentMethod;
+  setPaymentMethod: (v: PaymentMethod) => void;
   handlePromoApply: () => Promise<void>;
   handleCheckout: (params: {
     cart: CartItem[];
     orderType: 'delivery' | 'pickup';
     selectedAddressId: number | null;
     deliveryAddress: string;
+    paymentMethod: PaymentMethod;
     onClearCart: () => void;
   }) => Promise<void>;
 }
@@ -72,6 +76,7 @@ export default function CheckoutFooter({
     promoCode, setPromoCode,
     promoData, promoError, setPromoError,
     isSubmitting, orderError,
+    paymentMethod, setPaymentMethod,
     handlePromoApply, handleCheckout,
   } = checkout;
 
@@ -204,6 +209,17 @@ export default function CheckoutFooter({
         )}
       </div>
 
+      {/* Payment Method */}
+      <div className="mb-4">
+        <label className="block text-xs font-bold text-slate-500 mb-1.5 select-none">
+          Способ оплаты
+        </label>
+        <PaymentMethodDropdown
+          value={paymentMethod}
+          onChange={setPaymentMethod}
+        />
+      </div>
+
       {/* Split Price summary */}
       <div className="space-y-2 mb-5">
         <div className="flex items-center justify-between text-xs text-slate-400 select-none">
@@ -238,7 +254,7 @@ export default function CheckoutFooter({
 
       {/* Checkout Action Button */}
       <button
-        onClick={!isAuthenticated ? onOpenAuth : () => handleCheckout({ cart, orderType, selectedAddressId, deliveryAddress, onClearCart })}
+        onClick={!isAuthenticated ? onOpenAuth : () => handleCheckout({ cart, orderType, selectedAddressId, deliveryAddress, paymentMethod, onClearCart })}
         disabled={!canCheckout && isAuthenticated}
         className={btnClasses}
       >
@@ -273,6 +289,88 @@ export default function CheckoutFooter({
           await onRefreshAddresses();
         }}
       />
+    </div>
+  );
+}
+
+// ── Payment Method Dropdown ──
+
+const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: typeof Banknote }[] = [
+  { value: 'card_online', label: 'Картой онлайн', icon: Globe },
+  { value: 'card_delivery', label: 'Картой при получении', icon: CreditCard },
+  { value: 'cash', label: 'Наличные', icon: Banknote },
+];
+
+function PaymentMethodDropdown({
+  value,
+  onChange,
+}: {
+  value: PaymentMethod;
+  onChange: (v: PaymentMethod) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selected = PAYMENT_OPTIONS.find(o => o.value === value);
+  const Icon = selected?.icon ?? CreditCard;
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-2 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 hover:border-slate-300 transition-all cursor-pointer"
+      >
+        <Icon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <span className="flex-1 text-left truncate font-medium">
+          {selected?.label}
+        </span>
+        <ChevronDown
+          className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-10 overflow-hidden animate-fadeIn">
+          {PAYMENT_OPTIONS.map(option => {
+            const isSelected = option.value === value;
+            const IconOpt = option.icon;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full flex items-center gap-2 px-3.5 py-2.5 text-xs transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-slate-100 text-slate-900 font-bold'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <IconOpt className="w-3.5 h-3.5 shrink-0" />
+                <span>{option.label}</span>
+                {isSelected && (
+                  <span className="ml-auto w-2 h-2 rounded-full bg-slate-900" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
