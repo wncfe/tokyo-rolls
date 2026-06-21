@@ -54,7 +54,7 @@ export function useMenuQuery() {
     initialData: () => loadCached(MENU_CACHE_KEY),
     initialDataUpdatedAt: () => loadCachedTimestamp(MENU_CACHE_KEY),
     select: transformMenuData,
-    staleTime: STALE_TIME,
+    staleTime: 0, // always background-refetch on mount — prices change often
   });
 }
 
