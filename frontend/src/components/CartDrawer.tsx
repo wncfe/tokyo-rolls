@@ -118,22 +118,24 @@ export default function CartDrawer({
             )}
           </div>
 
-          {/* CART LIST OR EMPTY STATE */}
-          <div className="p-5 space-y-4">
-            {cart.length === 0 ? (
-              <CartEmptyState onClose={onClose} />
-            ) : (
-              cart.map((item) => (
-                <CartItemRow
-                  key={item.product.id}
-                  item={item}
-                  onAddToCart={onAddToCart}
-                  onRemoveFromCart={onRemoveFromCart}
-                  onClearItem={onClearItem}
-                />
-              ))
-            )}
-          </div>
+          {/* CART LIST OR EMPTY STATE — hidden on order success */}
+          {!checkout.orderSuccess && (
+            <div className="p-5 space-y-4">
+              {cart.length === 0 ? (
+                <CartEmptyState onClose={onClose} />
+              ) : (
+                cart.map((item) => (
+                  <CartItemRow
+                    key={item.product.id}
+                    item={item}
+                    onAddToCart={onAddToCart}
+                    onRemoveFromCart={onRemoveFromCart}
+                    onClearItem={onClearItem}
+                  />
+                ))
+              )}
+            </div>
+          )}
 
           {/* FOOTER / ORDER SUCCESS — part of the scroll flow */}
           {checkout.orderSuccess ? (
