@@ -1,41 +1,38 @@
-import { useState, useEffect } from 'react';
 import { MenuItem, RestaurantSettings } from '../types';
-import { fetchMenu, transformMenuData, fetchSettings, MenuData } from '../api';
+import { useMenuQuery, useSettingsQuery } from './useMenuQuery';
+
+const DEFAULT_SETTINGS: RestaurantSettings = {
+  opening_hour: 11,
+  closing_hour: 23,
+  min_order_amount: 700,
+  free_delivery_from: 700,
+  suburban_delivery_fee: 100,
+  delivery_time_min: 45,
+  delivery_time_max: 60,
+  restaurant_address: '',
+  pickup_discount_percent: 10,
+  is_open: true,
+};
 
 export function useMenu() {
-  const [menuData, setMenuData] = useState<MenuData[]>([]);
-  const [isLoadingMenu, setIsLoadingMenu] = useState(true);
-  const [menuError, setMenuError] = useState<string | null>(null);
-  const [restaurantSettings, setRestaurantSettings] = useState<RestaurantSettings>({
-    opening_hour: 11,
-    closing_hour: 23,
-    min_order_amount: 700,
-    free_delivery_from: 700,
-    suburban_delivery_fee: 100,
-    delivery_time_min: 45,
-    delivery_time_max: 60,
-    restaurant_address: '',
-    pickup_discount_percent: 10,
-    is_open: true,
-  });
+  const menuQuery = useMenuQuery();
+  const settingsQuery = useSettingsQuery();
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setIsLoadingMenu(true);
-        setMenuError(null);
-        const [data, settings] = await Promise.all([fetchMenu(), fetchSettings()]);
-        setMenuData(transformMenuData(data));
-        setRestaurantSettings(settings);
-      } catch (error) {
-        console.error('Failed to load menu:', error);
-        setMenuError('Не удалось загрузить меню. Проверьте подключение к серверу.');
-      } finally {
-        setIsLoadingMenu(false);
-      }
-    };
-    load();
-  }, []);
+  const menuData = menuQuery.data ?? [];
+  const restaurantSettings = settingsQuery.data ?? DEFAULT_SETTINGS;
+
+  // Show loader ONLY on very first mount when there is no cache at all.
+  // With initialData from localStorage, isLoading stays false after F5.
+  const isLoadingMenu = menuQuery.isLoading || settingsQuery.isLoading;
+
+  // Show error ONLY when there is NO data to render (no cache + fetch failed).
+  // If we have cached data, silently keep showing it while retrying in background.
+  const menuError =
+    menuQuery.data === undefined && settingsQuery.data === undefined
+      ? ((menuQuery.error as Error)?.message ??
+         (settingsQuery.error as Error)?.message ??
+         null)
+      : null;
 
   const getProductsByCategory = (categorySlug: string, subcategorySlug?: string): MenuItem[] => {
     if (!menuData || menuData.length === 0) return [];
