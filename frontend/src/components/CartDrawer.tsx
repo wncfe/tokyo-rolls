@@ -84,7 +84,7 @@ export default function CartDrawer({
         </div>
 
         {/* SCROLLABLE BODY — everything scrolls as one unit */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-none">
           {/* ORDER TYPE TOGGLE */}
           <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50">
             <div className="flex items-center bg-white border border-slate-200 rounded-xl p-0.5 select-none">
