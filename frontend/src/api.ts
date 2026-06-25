@@ -233,7 +233,7 @@ export async function deleteAddress(id: number): Promise<void> {
   }
 }
 
-export async function refreshToken(): Promise<{ access: string }> {
+export async function refreshToken(): Promise<{ access: string; refresh: string }> {
   const tokens = getStoredToken();
   if (!tokens?.refresh) throw new Error('No refresh token');
   const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
@@ -241,8 +241,8 @@ export async function refreshToken(): Promise<{ access: string }> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refresh: tokens.refresh }),
   });
-  const data = await handleResponse<{ access: string }>(response);
-  setStoredToken({ ...tokens, access: data.access });
+  const data = await handleResponse<{ access: string; refresh: string }>(response);
+  setStoredToken({ access: data.access, refresh: data.refresh });
   return data;
 }
 

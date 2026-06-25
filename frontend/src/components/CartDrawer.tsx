@@ -43,7 +43,7 @@ export default function CartDrawer({
   onRefreshAddresses,
 }: CartDrawerProps) {
   const checkout = useCartCheckout(isOpen);
-  const addr = useCartAddress();
+  const addr = useCartAddress(addresses);
 
   if (!isOpen) return null;
 
