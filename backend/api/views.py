@@ -245,7 +245,25 @@ class AddressViewSet(viewsets.ModelViewSet):
         return Address.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        instance = serializer.save(user=self.request.user)
+        self._assign_delivery_zone(instance)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        self._assign_delivery_zone(instance)
+
+    @staticmethod
+    def _assign_delivery_zone(address):
+        """Определить и закэшировать зону доставки по координатам."""
+        if address.latitude is not None and address.longitude is not None:
+            from .services.delivery_zones import get_delivery_zone
+            zone = get_delivery_zone(
+                float(address.longitude),
+                float(address.latitude),
+            )
+            if zone != address.delivery_zone:
+                address.delivery_zone = zone
+                address.save(update_fields=['delivery_zone'])
 
 
 class CheckoutView(generics.CreateAPIView):
@@ -296,6 +314,43 @@ class CheckoutView(generics.CreateAPIView):
             OrderReadSerializer(order).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def check_delivery_zone(request):
+    """Проверить зону доставки для сохранённого адреса.
+
+    Принимает: { address_id: int }
+    Возвращает: { zone, min_order_amount, delivery_fee, is_deliverable }
+    """
+    from .services.delivery_zones import get_zone_rules
+
+    address_id = request.data.get('address_id')
+    if not address_id:
+        return Response(
+            {'detail': 'address_id обязателен.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        addr = Address.objects.get(id=address_id, user=request.user)
+    except Address.DoesNotExist:
+        return Response(
+            {'detail': 'Адрес не найден.'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    zone = addr.delivery_zone
+    is_deliverable = zone is not None
+    rules = get_zone_rules(zone)
+
+    return Response({
+        'zone': zone,
+        'min_order_amount': rules['min_order_amount'],
+        'delivery_fee': rules['delivery_fee'],
+        'is_deliverable': is_deliverable,
+    })
 
 
 @api_view(['GET'])

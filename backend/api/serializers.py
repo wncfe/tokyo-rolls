@@ -196,14 +196,29 @@ class CodeVerifySerializer(serializers.Serializer):
 class AddressSerializer(serializers.ModelSerializer):
     """Сохранённый адрес доставки."""
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    # FloatField — DaData присылает координаты строкой с 10+ знаками после запятой,
+    # а стандартный DecimalField(max_digits=9, decimal_places=6) режет это ещё в to_internal_value.
+    latitude = serializers.FloatField(required=False, allow_null=True)
+    longitude = serializers.FloatField(required=False, allow_null=True)
 
     class Meta:
         model = Address
         fields = [
             'id', 'user', 'full_address', 'flat', 'entrance',
-            'floor', 'intercom', 'comment', 'is_default', 'created_at',
+            'floor', 'intercom', 'comment', 'is_default',
+            'latitude', 'longitude', 'delivery_zone', 'created_at',
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'delivery_zone']
+
+    def validate_latitude(self, value):
+        if value is not None:
+            return round(value, 6)
+        return value
+
+    def validate_longitude(self, value):
+        if value is not None:
+            return round(value, 6)
+        return value
 
 
 # ─── Checkout / Order ───
@@ -250,7 +265,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         if not items_data:
             raise serializers.ValidationError({'items': 'Корзина пуста.'})
 
-        # Разрешить address_id → delivery_address
+        # Разрешить address_id → delivery_address + кэшировать зону
         address_id = attrs.pop('address_id', None)
         if address_id:
             request = self.context.get('request')
@@ -260,6 +275,8 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                 addr = Address.objects.get(id=address_id, user=request.user)
             except Address.DoesNotExist:
                 raise serializers.ValidationError({'address_id': 'Адрес не найден.'})
+            # Кэшировать delivery_zone в attrs для использования в create()
+            attrs['_delivery_zone'] = addr.delivery_zone
             # Собрать полную строку доставки
             parts = [addr.full_address]
             if addr.flat:
@@ -299,6 +316,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         items_data = validated_data.pop('items')
         promo_code_str = validated_data.pop('promo_code', '')
+        delivery_zone = validated_data.pop('_delivery_zone', None)
 
         # Применить промокод (к этому моменту валидация уже прошла)
         promo = None
@@ -360,17 +378,34 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             pickup_discount = int(subtotal * settings_obj.pickup_discount_percent / 100) if order_type == 'pickup' else 0
             promo_discount = int(subtotal * discount_percent / 100) if discount_percent else 0
             discount_amount = pickup_discount + promo_discount
+
             if order_type == 'pickup':
                 delivery_fee = 0
+                min_order = settings_obj.min_order_amount
+            elif delivery_zone:
+                from .services.delivery_zones import get_zone_rules
+                rules = get_zone_rules(delivery_zone)
+                delivery_fee = rules['delivery_fee']
+                min_order = rules['min_order_amount']
             else:
+                # Доставка выбрана, но зона неизвестна (адрес без координат) → ошибка
+                if validated_data.get('delivery_address', ''):
+                    raise serializers.ValidationError({
+                        'delivery_address': (
+                            'Адрес не привязан к зоне доставки. '
+                            'Пожалуйста, сохраните адрес через «Мои адреса» и укажите его при заказе.'
+                        )
+                    })
+                # fallback на старые правила (не должно происходить при нормальном flow)
                 delivery_fee = 0 if subtotal - discount_amount >= settings_obj.free_delivery_from else settings_obj.suburban_delivery_fee
+                min_order = settings_obj.min_order_amount
 
             # Проверка минимальной суммы заказа (защита от прямых API-запросов)
             effective_total = subtotal - discount_amount + delivery_fee
-            if effective_total < settings_obj.min_order_amount:
+            if effective_total < min_order:
                 raise serializers.ValidationError({
-                    'items': f'Минимальная сумма заказа: {settings_obj.min_order_amount} ₽. '
-                             f'Сейчас: {effective_total} ₽, добавьте ещё {settings_obj.min_order_amount - effective_total} ₽.'
+                    'items': f'Минимальная сумма заказа: {min_order} ₽. '
+                             f'Сейчас: {effective_total} ₽, добавьте ещё {min_order - effective_total} ₽.'
                 })
 
             order.subtotal = subtotal

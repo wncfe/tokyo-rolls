@@ -73,6 +73,9 @@ export interface Address {
   intercom: string;
   comment: string;
   is_default: boolean;
+  latitude?: string | null;
+  longitude?: string | null;
+  delivery_zone?: 'free_delivery' | '800_delivery' | null;
   created_at: string;
 }
 
@@ -83,6 +86,16 @@ export interface AddressFormData {
   floor: string;
   intercom: string;
   comment: string;
+  latitude?: string | null;
+  longitude?: string | null;
+}
+
+// Delivery zone check result
+export interface DeliveryZoneInfo {
+  zone: 'free_delivery' | '800_delivery' | null;
+  min_order_amount: number;
+  delivery_fee: number;
+  is_deliverable: boolean;
 }
 
 // Restaurant settings from backend

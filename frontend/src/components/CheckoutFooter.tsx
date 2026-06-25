@@ -1,6 +1,6 @@
 import { ArrowRight, AlertCircle, Loader2, ShieldAlert, ChevronDown, Banknote, CreditCard, Globe } from 'lucide-react';
-import { CartItem, RestaurantSettings, User, Address, PaymentMethod } from '../types';
-import { createAddress, updateAddress, deleteAddress } from '../api';
+import { CartItem, RestaurantSettings, User, Address, PaymentMethod, DeliveryZoneInfo } from '../types';
+import { createAddress, updateAddress, deleteAddress, checkDeliveryZone } from '../api';
 import AddressDropdown from './AddressDropdown';
 import AddressFormModal from './AddressFormModal';
 import { useState, useRef, useEffect } from 'react';
@@ -87,14 +87,35 @@ export default function CheckoutFooter({
     editingAddress, setEditingAddress,
   } = addr;
 
+  // ── Zone info ──────────────────────────────────────
+  const [zoneInfo, setZoneInfo] = useState<DeliveryZoneInfo | null>(null);
+  const [isCheckingZone, setIsCheckingZone] = useState(false);
+
+  useEffect(() => {
+    if (!selectedAddressId || orderType !== 'delivery') {
+      setZoneInfo(null);
+      return;
+    }
+    let cancelled = false;
+    setIsCheckingZone(true);
+    checkDeliveryZone(selectedAddressId)
+      .then((info) => { if (!cancelled) setZoneInfo(info); })
+      .catch(() => { if (!cancelled) setZoneInfo(null); })
+      .finally(() => { if (!cancelled) setIsCheckingZone(false); });
+    return () => { cancelled = true; };
+  }, [selectedAddressId, orderType]);
+
   // ── Derived values ──────────────────────────────────
-  const minOrder = settings.min_order_amount;
+  const minOrder = orderType === 'delivery' && zoneInfo
+    ? zoneInfo.min_order_amount
+    : settings.min_order_amount;
   const promoDiscountAmount = promoData ? Math.round(subtotal * promoData.discount_percent / 100) : 0;
   const effectiveTotal = totalPrice - promoDiscountAmount;
   const isTooLow = effectiveTotal < minOrder;
   const isAddressEmpty = orderType === 'delivery' && !selectedAddressId && deliveryAddress.trim().length === 0;
   const isAuthenticated = !!user;
-  const canCheckout = isOpenStatus && !isTooLow && !isAddressEmpty && !isSubmitting && isAuthenticated;
+  const isUndeliverable = orderType === 'delivery' && zoneInfo !== null && !zoneInfo.is_deliverable;
+  const canCheckout = isOpenStatus && !isTooLow && !isAddressEmpty && !isSubmitting && isAuthenticated && !isUndeliverable;
 
   // ── Button text & style ──────────────────────────────
   let btnText = "Оформить заказ";
@@ -109,6 +130,9 @@ export default function CheckoutFooter({
   } else if (!isOpenStatus) {
     btnText = `Заказы принимаются с ${settings.opening_hour}:00`;
     btnClasses += " bg-orange-100 border border-orange-200 text-orange-600 cursor-not-allowed opacity-90";
+  } else if (isUndeliverable) {
+    btnText = "Адрес вне зоны доставки";
+    btnClasses += " bg-red-100 border border-red-200 text-red-500 cursor-not-allowed";
   } else if (isTooLow) {
     btnText = `Минималка ${minOrder} ₽ • Ещё ${minOrder - effectiveTotal} ₽`;
     btnClasses += " bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed";
@@ -151,22 +175,39 @@ export default function CheckoutFooter({
           <span className="font-bold flex items-center gap-1.5">🍅 Минимальная сумма заказа</span>
           <span>Добавь в корзину блюд еще на <strong className="font-black">{(minOrder - effectiveTotal).toLocaleString('ru-RU')} ₽</strong> для оформления заказа.</span>
         </div>
+      ) : isUndeliverable ? (
+        <div className="mb-4 bg-red-50 border border-red-200 p-3.5 rounded-2xl text-xs flex flex-col gap-0.5 text-red-800 animate-fadeIn">
+          <span className="font-bold text-red-900">⛔ Адрес вне зоны доставки</span>
+          <p className="text-[11px] text-red-700 leading-tight">К сожалению, по этому адресу доставка не осуществляется. Выберите другой адрес.</p>
+        </div>
       ) : orderType === 'pickup' ? (
         <div className="mb-4 bg-violet-50 border border-violet-100/70 p-3.5 rounded-2xl text-xs text-violet-800 flex flex-col gap-0.5 animate-fadeIn">
           <span className="font-bold text-violet-900">🥡 Самовывоз из ресторана</span>
           <p className="text-[11px] text-violet-700 leading-tight">Забери заказ сам — скидка {settings.pickup_discount_percent ?? 10}% на всё меню уже учтена в итоговой сумме.</p>
         </div>
-      ) : effectiveTotal >= settings.free_delivery_from ? (
-        <div className="mb-4 bg-emerald-50 border border-emerald-100/70 p-3.5 rounded-2xl text-xs text-emerald-800 flex flex-col gap-0.5 animate-fadeIn">
-          <span className="font-bold text-emerald-900">✨ Доставка бесплатная!</span>
-          <p className="text-[11px] text-emerald-700 leading-tight">Для отдаленных и загородных районов стоимость курьера составит от {settings.suburban_delivery_fee} ₽.</p>
+      ) : orderType === 'delivery' && zoneInfo ? (
+        zoneInfo.zone === 'free_delivery' ? (
+          <div className="mb-4 bg-emerald-50 border border-emerald-100/70 p-3.5 rounded-2xl text-xs text-emerald-800 flex flex-col gap-0.5 animate-fadeIn">
+            <span className="font-bold text-emerald-900">✨ Доставка бесплатная!</span>
+            <p className="text-[11px] text-emerald-700 leading-tight">Вы в зоне бесплатной доставки. Минимальная сумма заказа {zoneInfo.min_order_amount} ₽.</p>
+          </div>
+        ) : (
+          <div className="mb-4 bg-amber-50 border border-amber-100/70 p-3.5 rounded-2xl text-xs text-amber-800 flex flex-col gap-0.5 animate-fadeIn">
+            <span className="font-bold text-amber-900">🚚 Доставка: {zoneInfo.delivery_fee} ₽</span>
+            <p className="text-[11px] text-amber-700 leading-tight">Вы в зоне платной доставки. Минимальная сумма заказа {zoneInfo.min_order_amount} ₽.</p>
+          </div>
+        )
+      ) : orderType === 'delivery' && isCheckingZone ? (
+        <div className="mb-4 bg-slate-50 border border-slate-100/70 p-3.5 rounded-2xl text-xs text-slate-500 flex items-center gap-2 animate-fadeIn">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          <span>Проверяем зону доставки...</span>
         </div>
-      ) : (
-        <div className="mb-4 bg-amber-50 border border-amber-100/70 p-3.5 rounded-2xl text-xs text-amber-800 flex flex-col gap-0.5 animate-fadeIn">
-          <span className="font-bold text-amber-900">🚚 Доставка: {settings.suburban_delivery_fee} ₽</span>
-          <p className="text-[11px] text-amber-700 leading-tight">Бесплатная доставка при заказе от {settings.free_delivery_from} ₽.</p>
+      ) : orderType === 'delivery' && !selectedAddressId ? (
+        <div className="mb-4 bg-slate-50 border border-slate-100/70 p-3.5 rounded-2xl text-xs text-slate-500 flex flex-col gap-0.5 animate-fadeIn">
+          <span className="font-bold text-slate-600">📍 Выберите адрес доставки</span>
+          <p className="text-[11px] leading-tight">Добавьте или выберите сохранённый адрес, чтобы увидеть стоимость доставки.</p>
         </div>
-      )}
+      ) : null}
 
       {/* Address selection (only for authenticated users + delivery) */}
       {isAuthenticated && orderType === 'delivery' && (
@@ -231,12 +272,21 @@ export default function CheckoutFooter({
           <span>Итого товаров</span>
           <span className="font-mono text-slate-600 font-medium">{totalItems} шт</span>
         </div>
-        {orderType === 'delivery' && (
-          <div className="flex items-center justify-between text-xs text-slate-400 select-none">
-            <span>Доставка по Перми</span>
-            <span className="text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[10px]">БЕСПЛАТНО</span>
-          </div>
-        )}
+        {orderType === 'delivery' && (() => {
+          const fee = zoneInfo?.delivery_fee;
+          if (fee === undefined || fee === null) return null;
+          return (
+            <div className="flex items-center justify-between text-xs text-slate-400 select-none">
+              <span>Доставка</span>
+              <span className={fee === 0
+                ? "text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[10px]"
+                : "text-amber-700 bg-amber-50 border border-amber-100/50 px-2 py-0.5 rounded-md font-bold font-mono text-[10px]"
+              }>
+                {fee === 0 ? 'БЕСПЛАТНО' : `${fee} ₽`}
+              </span>
+            </div>
+          );
+        })()}
         {orderType === 'pickup' && pickupDiscount > 0 && (
           <div className="flex items-center justify-between text-xs text-slate-400 select-none">
             <span>Скидка за самовывоз ({settings.pickup_discount_percent ?? 10}%)</span>

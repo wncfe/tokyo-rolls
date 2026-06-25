@@ -208,12 +208,25 @@ class AddressFactory(DjangoModelFactory):
 
     user = SubFactory(UserFactory)
     full_address = Sequence(lambda n: f'г Пермь, ул Тестовая, д {n}')
+    latitude = 58.015000  # inside free_delivery zone (center of Perm)
+    longitude = 56.290000
     flat = '1'
     entrance = '1'
     floor = '1'
     intercom = ''
     comment = ''
     is_default = False
+
+    @post_generation
+    def assign_zone(self, create, extracted, **kwargs):
+        """Auto-assign delivery_zone based on coordinates."""
+        if not create:
+            return
+        from api.services.delivery_zones import get_delivery_zone
+        self.delivery_zone = get_delivery_zone(
+            float(self.longitude), float(self.latitude)
+        )
+        self.save(update_fields=['delivery_zone'])
 
 
 # ─── PromoCode ───

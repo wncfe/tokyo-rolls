@@ -39,7 +39,6 @@ function saveCached(key: string, data: unknown): void {
 
 const MENU_CACHE_KEY = 'tr-menu-v1';
 const SETTINGS_CACHE_KEY = 'tr-settings-v1';
-const STALE_TIME = 5 * 60 * 1000; // 5 min
 
 // ── hooks ──
 
@@ -75,6 +74,7 @@ export function useSettingsQuery() {
     },
     initialData: () => loadCached<RestaurantSettings>(SETTINGS_CACHE_KEY),
     initialDataUpdatedAt: () => loadCachedTimestamp(SETTINGS_CACHE_KEY),
-    staleTime: STALE_TIME,
+    staleTime: 0,
+    refetchInterval: 2 * 60 * 1000,
   });
 }

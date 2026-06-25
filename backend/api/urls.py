@@ -21,6 +21,7 @@ urlpatterns = [
     path('settings/', views.restaurant_settings, name='settings'),
     path('promo/validate/', views.validate_promo, name='promo-validate'),
     path('dadata/suggest/', views.dadata_suggest, name='dadata-suggest'),
+    path('delivery/check-zone/', views.check_delivery_zone, name='delivery-check-zone'),
     path('payment/webhook/', views.payment_webhook, name='payment-webhook'),
     path('payment/status/<int:order_id>/', views.payment_status, name='payment-status'),
 ]

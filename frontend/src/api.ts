@@ -1,4 +1,4 @@
-import { Product, Set, MenuItem, AuthTokens, PhoneAuthData, VerifyCodeData, User, Address, AddressFormData, RestaurantSettings, CheckoutData, PaymentStatusResult } from './types';
+import { Product, Set, MenuItem, AuthTokens, PhoneAuthData, VerifyCodeData, User, Address, AddressFormData, RestaurantSettings, CheckoutData, PaymentStatusResult, DeliveryZoneInfo } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -271,6 +271,18 @@ export async function submitOrder(data: CheckoutData): Promise<{ payment_url?: s
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+}
+
+// ─── Delivery Zone ───
+
+/** Проверить зону доставки для сохранённого адреса. */
+export async function checkDeliveryZone(addressId: number): Promise<DeliveryZoneInfo> {
+  const response = await fetch(`${API_BASE_URL}/delivery/check-zone/`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ address_id: addressId }),
   });
   return handleResponse(response);
 }

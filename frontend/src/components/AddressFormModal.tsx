@@ -19,6 +19,8 @@ export default function AddressFormModal({
   onDelete,
 }: AddressFormModalProps) {
   const [fullAddress, setFullAddress] = useState('');
+  const [lat, setLat] = useState<string | null>(null);
+  const [lon, setLon] = useState<string | null>(null);
   const [flat, setFlat] = useState('');
   const [entrance, setEntrance] = useState('');
   const [floor, setFloor] = useState('');
@@ -33,6 +35,8 @@ export default function AddressFormModal({
     if (isOpen) {
       if (address) {
         setFullAddress(address.full_address);
+        setLat(address.latitude ?? null);
+        setLon(address.longitude ?? null);
         setFlat(address.flat);
         setEntrance(address.entrance);
         setFloor(address.floor);
@@ -40,6 +44,8 @@ export default function AddressFormModal({
         setComment(address.comment);
       } else {
         setFullAddress('');
+        setLat(null);
+        setLon(null);
         setFlat('');
         setEntrance('');
         setFloor('');
@@ -63,6 +69,8 @@ export default function AddressFormModal({
     try {
       await onSave({
         full_address: fullAddress.trim(),
+        latitude: lat,
+        longitude: lon,
         flat: flat.trim(),
         entrance: entrance.trim(),
         floor: floor.trim(),
@@ -128,7 +136,7 @@ export default function AddressFormModal({
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
               Адрес *
             </label>
-            <DadataAddressInput value={fullAddress} onChange={setFullAddress} />
+            <DadataAddressInput value={fullAddress} onChange={(addr, newLat, newLon) => { setFullAddress(addr); if (newLat) setLat(newLat); if (newLon) setLon(newLon); }} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

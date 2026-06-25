@@ -445,6 +445,20 @@ class Address(models.Model):
     intercom = models.CharField(max_length=50, blank=True, verbose_name='Домофон')
     comment = models.TextField(blank=True, verbose_name='Комментарий курьеру')
     is_default = models.BooleanField(default=False, verbose_name='Основной адрес')
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        verbose_name='Широта', help_text='Из DaData geo_lat',
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        verbose_name='Долгота', help_text='Из DaData geo_lon',
+    )
+    delivery_zone = models.CharField(
+        max_length=20, null=True, blank=True,
+        choices=[('free_delivery', 'Бесплатная'), ('800_delivery', '800 зона')],
+        verbose_name='Зона доставки',
+        help_text='Кэшируется при сохранении адреса по координатам',
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
 
     class Meta:

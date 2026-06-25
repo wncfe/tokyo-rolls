@@ -5,7 +5,7 @@ import { suggestAddress, DaDataSuggestion } from '../utils/dadata';
 
 interface DadataAddressInputProps {
   value: string;
-  onChange: (address: string) => void;
+  onChange: (address: string, lat?: string, lon?: string) => void;
 }
 
 export default function DadataAddressInput({
@@ -100,8 +100,11 @@ export default function DadataAddressInput({
   };
 
   const handleSelect = (suggestion: DaDataSuggestion) => {
-    setInputValue(suggestion.value);
-    onChange(suggestion.value); // Лаконичная версия: «г Пермь, ул Ленина, д 1»
+    const address = suggestion.value;
+    const lat = suggestion.data.geo_lat;
+    const lon = suggestion.data.geo_lon;
+    setInputValue(address);
+    onChange(address, lat, lon); // Пробрасываем координаты
     setSuggestions([]);
     setIsOpen(false);
     inputRef.current?.blur();

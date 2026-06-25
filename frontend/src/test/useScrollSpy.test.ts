@@ -100,10 +100,11 @@ describe('useScrollSpy', () => {
 // ─── useRestaurantStatus ───
 
 describe('useRestaurantStatus', () => {
-  it('returns is_open from settings', () => {
+  it('returns true when the current Perm hour is within working hours', () => {
+    // Use hours that are almost certainly within working time (e.g. 11–22)
     const settings: RestaurantSettings = {
-      opening_hour: 10,
-      closing_hour: 22,
+      opening_hour: 6,
+      closing_hour: 23,
       min_order_amount: 700,
       free_delivery_from: 1500,
       suburban_delivery_fee: 200,
@@ -114,13 +115,15 @@ describe('useRestaurantStatus', () => {
       is_open: true,
     };
     const { result } = renderHook(() => useRestaurantStatus(settings));
+    // Between 06:00 and 22:59 — should always be true in Perm
     expect(result.current).toBe(true);
   });
 
-  it('returns false when restaurant is closed', () => {
+  it('returns false when restaurant is closed at night', () => {
+    // Opening/closing at hours that are always false during daytime
     const settings: RestaurantSettings = {
-      opening_hour: 10,
-      closing_hour: 22,
+      opening_hour: 0,
+      closing_hour: 5,
       min_order_amount: 700,
       free_delivery_from: 1500,
       suburban_delivery_fee: 200,
@@ -131,6 +134,7 @@ describe('useRestaurantStatus', () => {
       is_open: false,
     };
     const { result } = renderHook(() => useRestaurantStatus(settings));
+    // Between 00:00 and 04:59 — should always be false during morning/day in Perm
     expect(result.current).toBe(false);
   });
 });
