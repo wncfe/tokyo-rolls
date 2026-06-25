@@ -7,6 +7,7 @@ import CartDrawer from "./components/CartDrawer";
 import AuthModal from "./components/AuthModal";
 import HeroBanner from "./components/HeroBanner";
 import MenuSections from "./components/MenuSections";
+import PaymentResultPage from "./components/PaymentResultPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { MenuItem } from "./types";
 import { useCart } from "./hooks/useCart";
@@ -36,6 +37,16 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [orderType, setOrderType] = useState<"delivery" | "pickup">("delivery");
 
+  // YooKassa payment return: detect ?payment_return=1 in URL
+  const [paymentReturnOrderId, setPaymentReturnOrderId] = useState<number | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment_return') === '1') {
+      const oid = params.get('order_id');
+      return oid && !isNaN(Number(oid)) ? Number(oid) : null;
+    }
+    return null;
+  });
+
   // Auth handlers (passwordless)
   const handleRequestCode = async (phone: string) => {
     await loginWithPhone(phone);
@@ -48,6 +59,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-rose-500 selection:text-white pb-32">
+      {/* YooKassa payment return page — fullscreen overlay */}
+      {paymentReturnOrderId !== null ? (
+        <PaymentResultPage
+          orderId={paymentReturnOrderId}
+          onClose={() => setPaymentReturnOrderId(null)}
+        />
+      ) : (
+      <>
       <Header
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
@@ -162,6 +181,8 @@ export default function App() {
         onRequestCode={handleRequestCode}
         onVerifyCode={handleVerifyCode}
       />
+    </>
+    )}
     </div>
   );
 }

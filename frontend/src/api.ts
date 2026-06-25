@@ -1,4 +1,4 @@
-import { Product, Set, MenuItem, AuthTokens, PhoneAuthData, VerifyCodeData, User, Address, AddressFormData, RestaurantSettings, CheckoutData } from './types';
+import { Product, Set, MenuItem, AuthTokens, PhoneAuthData, VerifyCodeData, User, Address, AddressFormData, RestaurantSettings, CheckoutData, PaymentStatusResult } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -266,11 +266,19 @@ export async function validatePromo(code: string): Promise<{ code: string; disco
 
 // ─── Checkout ───
 
-export async function submitOrder(data: CheckoutData): Promise<any> {
+export async function submitOrder(data: CheckoutData): Promise<{ payment_url?: string; id: number; status: string }> {
   const response = await fetch(`${API_BASE_URL}/checkout/`, {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
+  return handleResponse(response);
+}
+
+// ─── YooKassa Payment Status ───
+
+/** Получить статус оплаты заказа (опрос после возврата с ЮKassa). */
+export async function fetchPaymentStatus(orderId: number): Promise<PaymentStatusResult> {
+  const response = await fetch(`${API_BASE_URL}/payment/status/${orderId}/`);
   return handleResponse(response);
 }

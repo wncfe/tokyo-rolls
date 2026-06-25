@@ -301,7 +301,7 @@ export default function CheckoutFooter({
 // ── Payment Method Dropdown ──
 
 const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: typeof Banknote }[] = [
-  { value: 'card_online', label: 'Картой онлайн', icon: Globe },
+  { value: 'card_online', label: 'Онлайн (карта / СБП)', icon: Globe },
   { value: 'card_delivery', label: 'Картой при получении', icon: CreditCard },
   { value: 'cash', label: 'Наличные', icon: Banknote },
 ];

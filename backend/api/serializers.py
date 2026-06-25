@@ -412,6 +412,7 @@ class OrderReadSerializer(serializers.ModelSerializer):
             'id', 'status', 'customer_name', 'customer_phone',
             'delivery_address', 'comment', 'order_type', 'payment_method',
             'subtotal', 'discount_amount', 'delivery_fee', 'total',
+            'payment_id', 'payment_url', 'yookassa_status',
             'created_at', 'items',
         ]
 

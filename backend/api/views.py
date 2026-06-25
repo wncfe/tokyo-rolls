@@ -1,3 +1,5 @@
+import json
+import logging
 import os
 import re
 from datetime import timedelta
@@ -6,6 +8,8 @@ from django.http import JsonResponse
 from django.db.models import Prefetch
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from rest_framework import viewsets, filters, generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -17,6 +21,8 @@ from .serializers import (
     OrderWriteSerializer, OrderReadSerializer,
     RestaurantSettingsSerializer, PromoCodeValidateSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def health(request):
@@ -261,6 +267,31 @@ class CheckoutView(generics.CreateAPIView):
                 extra['customer_phone'] = profile.phone
 
         order = serializer.save(**extra)
+
+        # Если выбран онлайн-платёж — создаём платёж в ЮKassa
+        if order.payment_method == Order.PaymentMethod.CARD_ONLINE:
+            from .services.yookassa import create_payment
+            description = f'Заказ №{order.pk} — Tokyo Rolls'
+            result = create_payment(
+                amount_rub=order.total,
+                order_id=order.pk,
+                description=description,
+            )
+            if result:
+                order.payment_id = result['payment_id']
+                order.payment_url = result['payment_url']
+                order.yookassa_status = result['yookassa_status']
+                order.status = Order.Status.AWAITING_PAYMENT
+                order.save(update_fields=[
+                    'payment_id', 'payment_url',
+                    'yookassa_status', 'status',
+                ])
+            else:
+                logger.warning(
+                    'YooKassa payment creation failed for order %s',
+                    order.pk,
+                )
+
         return Response(
             OrderReadSerializer(order).data,
             status=status.HTTP_201_CREATED,
@@ -329,3 +360,112 @@ def dadata_suggest(request):
             {'detail': f'DaData request failed: {str(e)}'},
             status=status.HTTP_502_BAD_GATEWAY,
         )
+
+
+# ─── YooKassa Payment Webhook ───
+
+@require_POST
+@csrf_exempt
+@permission_classes([permissions.AllowAny])
+def payment_webhook(request):
+    """
+    Webhook от ЮKassa — уведомление о смене статуса платежа.
+    ЮKassa присылает POST с JSON-телом.
+    """
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return Response(
+            {'detail': 'Invalid JSON'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    event = body.get('event', '')
+    event_object = body.get('object', {})
+
+    if event in ('payment.waiting_for_capture', 'payment.succeeded', 'payment.canceled'):
+        payment_id = event_object.get('id', '')
+        if not payment_id:
+            return Response(
+                {'detail': 'No payment id'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            order = Order.objects.get(payment_id=payment_id)
+        except Order.DoesNotExist:
+            logger.warning(
+                'Webhook: order not found for payment %s',
+                payment_id,
+            )
+            return Response(
+                {'detail': 'Order not found'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        new_status = event_object.get('status', '')
+        if event == 'payment.succeeded' or new_status == 'succeeded':
+            order.status = Order.Status.CONFIRMED
+            order.yookassa_status = 'succeeded'
+        elif event == 'payment.canceled' or new_status == 'canceled':
+            order.status = Order.Status.CANCELLED
+            order.yookassa_status = 'canceled'
+        else:
+            order.yookassa_status = new_status
+
+        order.save(update_fields=['status', 'yookassa_status'])
+
+        logger.info(
+            'Webhook processed: payment=%s, event=%s, new_order_status=%s',
+            payment_id, event, order.status,
+        )
+
+    return Response({'detail': 'OK'})
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def payment_status(request, order_id):
+    """Проверить статус оплаты заказа (опрос после возврата с ЮKassa).
+
+    Сначала смотрит локальный статус. Если локально заказ ещё не подтверждён,
+    но у него есть payment_id — запрашивает ЮKassa API напрямую и обновляет
+    статус заказа (актуально при разработке без вебхуков / падении вебхука).
+    """
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist:
+        return Response(
+            {'detail': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Если локально заказ ещё не подтверждён, проверяем ЮKassa напрямую
+    if order.status not in (
+        Order.Status.CONFIRMED,
+        Order.Status.PREPARING,
+        Order.Status.READY,
+    ) and order.payment_id:
+        from .services.yookassa import get_payment_info
+
+        info = get_payment_info(order.payment_id)
+        if info is not None:
+            order.yookassa_status = info['status']
+
+            if info['status'] == 'succeeded':
+                order.status = Order.Status.CONFIRMED
+            elif info['status'] == 'canceled':
+                order.status = Order.Status.CANCELLED
+
+            order.save(update_fields=['status', 'yookassa_status'])
+
+    return Response({
+        'order_id': order.pk,
+        'status': order.status,
+        'yookassa_status': order.yookassa_status,
+        'paid': order.status in (
+            Order.Status.CONFIRMED,
+            Order.Status.PREPARING,
+            Order.Status.READY,
+        ),
+    })

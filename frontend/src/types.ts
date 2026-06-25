@@ -119,3 +119,19 @@ export interface CheckoutItem {
 }
 
 export type PaymentMethod = 'cash' | 'card_delivery' | 'card_online';
+
+// YooKassa payment status polling result
+export interface PaymentStatusResult {
+  order_id: number;
+  status: string;
+  yookassa_status: string;
+  paid: boolean;
+}
+
+// Order response after checkout (includes optional payment_url)
+export interface OrderResponse {
+  id: number;
+  status: string;
+  payment_url?: string;
+  // ... other fields from OrderReadSerializer
+}

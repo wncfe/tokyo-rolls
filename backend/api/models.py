@@ -474,6 +474,7 @@ class Order(models.Model):
 
     class Status(models.TextChoices):
         UNPAID = 'unpaid', 'Не оплачен'
+        AWAITING_PAYMENT = 'awaiting_payment', 'Ожидает оплаты'
         PENDING = 'pending', 'Новый'
         CONFIRMED = 'confirmed', 'Подтверждён'
         PREPARING = 'preparing', 'Готовится'
@@ -530,6 +531,18 @@ class Order(models.Model):
     discount_amount = models.PositiveIntegerField(default=0, verbose_name='Скидка, ₽')
     delivery_fee = models.PositiveIntegerField(default=0, verbose_name='Доставка, ₽')
     total = models.PositiveIntegerField(default=0, verbose_name='Итого, ₽')
+    payment_id = models.CharField(
+        max_length=64, blank=True,
+        verbose_name='ID платежа в ЮKassa',
+    )
+    payment_url = models.URLField(
+        max_length=500, blank=True,
+        verbose_name='Ссылка на оплату',
+    )
+    yookassa_status = models.CharField(
+        max_length=20, blank=True,
+        verbose_name='Статус платежа в ЮKassa',
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
 
     class Meta:

@@ -183,3 +183,11 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# ─── YooKassa (ЮKassa) — online payments ───
+YOOKASSA_SHOP_ID = os.environ.get('YOOKASSA_SHOP_ID', '1394980')
+YOOKASSA_SECRET_KEY = os.environ.get('YOOKASSA_SECRET_KEY', '')
+YOOKASSA_RETURN_URL = os.environ.get(
+    'YOOKASSA_RETURN_URL',
+    'http://localhost:3000/?payment_return=1',
+)
