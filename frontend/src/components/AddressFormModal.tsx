@@ -64,6 +64,10 @@ export default function AddressFormModal({
       setError('Введите адрес');
       return;
     }
+    if (lat === null) {
+      setError('Укажите номер дома — нужен точный адрес для доставки');
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -136,7 +140,7 @@ export default function AddressFormModal({
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
               Адрес *
             </label>
-            <DadataAddressInput value={fullAddress} onChange={(addr, newLat, newLon) => { setFullAddress(addr); if (newLat) setLat(newLat); if (newLon) setLon(newLon); }} />
+            <DadataAddressInput value={fullAddress} onChange={(addr, newLat, newLon) => { setFullAddress(addr); setLat(newLat ?? null); setLon(newLon ?? null); }} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -203,6 +207,12 @@ export default function AddressFormModal({
             />
           </div>
 
+          {fullAddress.trim() && lat === null && (
+            <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-700 font-medium text-center leading-tight">
+              Укажите номер дома — выберите адрес из подсказок с номером дома
+            </div>
+          )}
+
           <div className="flex gap-2 mt-2">
             {isEdit && onDelete && (
               <button
@@ -216,7 +226,7 @@ export default function AddressFormModal({
             )}
             <button
               type="submit"
-              disabled={loading || !fullAddress.trim()}
+              disabled={loading || !fullAddress.trim() || lat === null}
               className="flex-1 py-3 bg-[#E11D48] hover:bg-rose-600 text-white font-bold text-sm rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (

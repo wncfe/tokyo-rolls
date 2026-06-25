@@ -18,6 +18,7 @@ export default function DadataAddressInput({
   const [isLoading, setIsLoading] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+  const [error, setError] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +94,7 @@ export default function DadataAddressInput({
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     const v = e.target.value;
     setInputValue(v);
     onChange(v); // Сразу синхронизируем в родительский стейт (ручной ввод)
@@ -100,11 +102,23 @@ export default function DadataAddressInput({
   };
 
   const handleSelect = (suggestion: DaDataSuggestion) => {
+    setError(null);
     const address = suggestion.value;
+
+    if (!suggestion.data.house) {
+      // Адрес без номера дома: заполняем поле, но не закрываем дропдаун —
+      // даём пользователю допечатать номер дома. Координаты не передаём.
+      setInputValue(address + ' ');
+      onChange(address + ' '); // без lat/lon → родитель обнулит координаты
+      inputRef.current?.focus();
+      return;
+    }
+
+    // Есть дом — принимаем полностью с координатами
     const lat = suggestion.data.geo_lat;
     const lon = suggestion.data.geo_lon;
     setInputValue(address);
-    onChange(address, lat, lon); // Пробрасываем координаты
+    onChange(address, lat, lon);
     setSuggestions([]);
     setIsOpen(false);
     inputRef.current?.blur();
@@ -135,6 +149,11 @@ export default function DadataAddressInput({
     <div ref={containerRef} className="relative">
       {/* Поле ввода */}
       <div className="relative">
+        {error && (
+          <div className="absolute -top-8 left-0 right-0 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg text-[10px] text-red-600 font-medium text-center">
+            {error}
+          </div>
+        )}
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         <input
           ref={inputRef}

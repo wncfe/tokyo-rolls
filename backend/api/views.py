@@ -399,6 +399,7 @@ def dadata_suggest(request):
                 'query': query.strip(),
                 'count': 10,
                 'locations': [{'city': 'Пермь'}],
+                'to_bound': {'value': 'house'},
             },
             headers={
                 'Content-Type': 'application/json',
@@ -409,7 +410,24 @@ def dadata_suggest(request):
         )
         resp.raise_for_status()
         data = resp.json()
-        return Response(data.get('suggestions', []), status=status.HTTP_200_OK)
+
+        suggestions = data.get('suggestions', [])
+
+        # Отфильтровываем подсказки с низким качеством координат
+        # qc_geo: 0=точные, 1=ближайший дом, 2=улица, 3=нп, 4=город, 5=не определены
+        # Отбрасываем только 4 (центр города) и 5 (не определены) — fallback'и
+        def is_quality_suggestion(suggestion):
+            qc = suggestion.get('data', {}).get('qc_geo')
+            if qc is None or qc == '':
+                return True  # нет данных — доверяем
+            try:
+                return int(qc) not in (4, 5)
+            except (ValueError, TypeError):
+                return True
+
+        suggestions = [s for s in suggestions if is_quality_suggestion(s)]
+
+        return Response(suggestions, status=status.HTTP_200_OK)
     except requests.RequestException as e:
         return Response(
             {'detail': f'DaData request failed: {str(e)}'},
