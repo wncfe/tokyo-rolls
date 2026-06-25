@@ -54,7 +54,14 @@ export function useMenuQuery() {
     initialData: () => loadCached(MENU_CACHE_KEY),
     initialDataUpdatedAt: () => loadCachedTimestamp(MENU_CACHE_KEY),
     select: transformMenuData,
-    staleTime: 0, // always background-refetch on mount — prices change often
+    // staleTime: 0 — данные считаются устаревшими сразу после рендера,
+    // поэтому React Query делает фоновый refetch при каждом mount / window focus.
+    // Благодаря initialData из localStorage пользователь ВСЕГДА видит меню мгновенно
+    // (без лоадера), а актуальные цены подтягиваются в фоне.
+    staleTime: 0,
+    // Дополнительная страховка: фоновое обновление каждые 2 минуты,
+    // даже если пользователь не переключает вкладки.
+    refetchInterval: 2 * 60 * 1000,
   });
 }
 

@@ -73,10 +73,12 @@ class ProductSerializer(serializers.ModelSerializer):
         return list(obj.ingredients.values_list('name', flat=True))
 
     def get_allergens(self, obj):
-        # Автоматически собирает аллергены из ингредиентов продукта, исключая дубликаты
-        return sorted(set(
-            obj.ingredients.exclude(allergens__isnull=True).values_list('allergens__name', flat=True)
-        ))
+        # Итерация по prefetch-кэшу без доп. запросов к БД
+        names: set[str] = set()
+        for ingredient in obj.ingredients.all():
+            for allergen in ingredient.allergens.all():
+                names.add(allergen.name)
+        return sorted(names)
 
 
 class SetItemSerializer(serializers.ModelSerializer):
@@ -127,10 +129,12 @@ class SetSerializer(serializers.ModelSerializer):
         return list(obj.ingredients.values_list('name', flat=True))
 
     def get_allergens(self, obj):
-        # Автоматически собирает аллергены из ингредиентов сета, исключая дубликаты
-        return sorted(set(
-            obj.ingredients.exclude(allergens__isnull=True).values_list('allergens__name', flat=True)
-        ))
+        # Итерация по prefetch-кэшу без доп. запросов к БД
+        names: set[str] = set()
+        for ingredient in obj.ingredients.all():
+            for allergen in ingredient.allergens.all():
+                names.add(allergen.name)
+        return sorted(names)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -288,74 +292,75 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         # Привязать пользователя, если авторизован
         user = self.context['request'].user if self.context['request'].user.is_authenticated else None
 
-        # Создать заказ
-        order = Order.objects.create(user=user, **validated_data)
+        # Создать заказ атомарно: либо все позиции + финансы, либо ничего
+        from django.db import transaction
+        with transaction.atomic():
+            order = Order.objects.create(user=user, **validated_data)
 
-        subtotal = 0
-        for item_data in items_data:
-            product_slug = item_data.get('product_slug')
-            set_slug = item_data.get('set_slug')
-            quantity = item_data['quantity']
+            subtotal = 0
+            for item_data in items_data:
+                product_slug = item_data.get('product_slug')
+                set_slug = item_data.get('set_slug')
+                quantity = item_data['quantity']
 
-            if product_slug:
-                try:
-                    product = Product.objects.get(slug=product_slug, is_available=True)
-                except Product.DoesNotExist:
-                    raise serializers.ValidationError({
-                        'items': f'Продукт «{product_slug}» не найден или недоступен.'
-                    })
-                OrderItem.objects.create(
-                    order=order,
-                    product=product,
-                    product_name=product.name,
-                    unit_price=product.price,
-                    quantity=quantity,
-                    weight_grams=product.weight,
-                )
-                subtotal += product.price * quantity
-            elif set_slug:
-                try:
-                    menu_set = Set.objects.get(slug=set_slug, is_available=True)
-                except Set.DoesNotExist:
-                    raise serializers.ValidationError({
-                        'items': f'Сет «{set_slug}» не найден или недоступен.'
-                    })
-                OrderItem.objects.create(
-                    order=order,
-                    set_menu=menu_set,
-                    product_name=menu_set.name,
-                    unit_price=menu_set.price,
-                    quantity=quantity,
-                    weight_grams=menu_set.weight,
-                )
-                subtotal += menu_set.price * quantity
+                if product_slug:
+                    try:
+                        product = Product.objects.get(slug=product_slug, is_available=True)
+                    except Product.DoesNotExist:
+                        raise serializers.ValidationError({
+                            'items': f'Продукт «{product_slug}» не найден или недоступен.'
+                        })
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        product_name=product.name,
+                        unit_price=product.price,
+                        quantity=quantity,
+                        weight_grams=product.weight,
+                    )
+                    subtotal += product.price * quantity
+                elif set_slug:
+                    try:
+                        menu_set = Set.objects.get(slug=set_slug, is_available=True)
+                    except Set.DoesNotExist:
+                        raise serializers.ValidationError({
+                            'items': f'Сет «{set_slug}» не найден или недоступен.'
+                        })
+                    OrderItem.objects.create(
+                        order=order,
+                        set_menu=menu_set,
+                        product_name=menu_set.name,
+                        unit_price=menu_set.price,
+                        quantity=quantity,
+                        weight_grams=menu_set.weight,
+                    )
+                    subtotal += menu_set.price * quantity
 
-        # Расчёт скидки и доставки
-        order_type = validated_data.get('order_type', 'delivery')
-        settings_obj = RestaurantSettings.get_solo()
-        pickup_discount = int(subtotal * settings_obj.pickup_discount_percent / 100) if order_type == 'pickup' else 0
-        promo_discount = int(subtotal * discount_percent / 100) if discount_percent else 0
-        discount_amount = pickup_discount + promo_discount
-        if order_type == 'pickup':
-            delivery_fee = 0
-        else:
-            delivery_fee = 0 if subtotal - discount_amount >= settings_obj.free_delivery_from else settings_obj.suburban_delivery_fee
+            # Расчёт скидки и доставки
+            order_type = validated_data.get('order_type', 'delivery')
+            settings_obj = RestaurantSettings.get_solo()
+            pickup_discount = int(subtotal * settings_obj.pickup_discount_percent / 100) if order_type == 'pickup' else 0
+            promo_discount = int(subtotal * discount_percent / 100) if discount_percent else 0
+            discount_amount = pickup_discount + promo_discount
+            if order_type == 'pickup':
+                delivery_fee = 0
+            else:
+                delivery_fee = 0 if subtotal - discount_amount >= settings_obj.free_delivery_from else settings_obj.suburban_delivery_fee
 
-        # Проверка минимальной суммы заказа (защита от прямых API-запросов)
-        effective_total = subtotal - discount_amount + delivery_fee
-        if effective_total < settings_obj.min_order_amount:
-            raise serializers.ValidationError({
-                'items': f'Минимальная сумма заказа: {settings_obj.min_order_amount} ₽. '
-                         f'Сейчас: {effective_total} ₽, добавьте ещё {settings_obj.min_order_amount - effective_total} ₽.'
-            })
+            # Проверка минимальной суммы заказа (защита от прямых API-запросов)
+            effective_total = subtotal - discount_amount + delivery_fee
+            if effective_total < settings_obj.min_order_amount:
+                raise serializers.ValidationError({
+                    'items': f'Минимальная сумма заказа: {settings_obj.min_order_amount} ₽. '
+                             f'Сейчас: {effective_total} ₽, добавьте ещё {settings_obj.min_order_amount - effective_total} ₽.'
+                })
 
-        order.subtotal = subtotal
-        order.discount_amount = discount_amount
-        order.delivery_fee = delivery_fee
-        order.total = effective_total
-        order.promo_code = promo
-        order.order_type = order_type
-        order.save(update_fields=['subtotal', 'discount_amount', 'delivery_fee', 'total', 'promo_code', 'order_type'])
+            order.subtotal = subtotal
+            order.discount_amount = discount_amount
+            order.delivery_fee = delivery_fee
+            order.total = effective_total
+            order.promo_code = promo
+            order.save(update_fields=['subtotal', 'discount_amount', 'delivery_fee', 'total', 'promo_code'])
 
         return order
 

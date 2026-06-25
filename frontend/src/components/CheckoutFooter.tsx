@@ -154,12 +154,17 @@ export default function CheckoutFooter({
       ) : orderType === 'pickup' ? (
         <div className="mb-4 bg-violet-50 border border-violet-100/70 p-3.5 rounded-2xl text-xs text-violet-800 flex flex-col gap-0.5 animate-fadeIn">
           <span className="font-bold text-violet-900">🥡 Самовывоз из ресторана</span>
-          <p className="text-[11px] text-violet-700 leading-tight">Забери заказ сам — скидка 10% на всё меню уже учтена в итоговой сумме.</p>
+          <p className="text-[11px] text-violet-700 leading-tight">Забери заказ сам — скидка {settings.pickup_discount_percent ?? 10}% на всё меню уже учтена в итоговой сумме.</p>
         </div>
-      ) : (
+      ) : effectiveTotal >= settings.free_delivery_from ? (
         <div className="mb-4 bg-emerald-50 border border-emerald-100/70 p-3.5 rounded-2xl text-xs text-emerald-800 flex flex-col gap-0.5 animate-fadeIn">
           <span className="font-bold text-emerald-900">✨ Доставка бесплатная!</span>
           <p className="text-[11px] text-emerald-700 leading-tight">Для отдаленных и загородных районов стоимость курьера составит от {settings.suburban_delivery_fee} ₽.</p>
+        </div>
+      ) : (
+        <div className="mb-4 bg-amber-50 border border-amber-100/70 p-3.5 rounded-2xl text-xs text-amber-800 flex flex-col gap-0.5 animate-fadeIn">
+          <span className="font-bold text-amber-900">🚚 Доставка: {settings.suburban_delivery_fee} ₽</span>
+          <p className="text-[11px] text-amber-700 leading-tight">Бесплатная доставка при заказе от {settings.free_delivery_from} ₽.</p>
         </div>
       )}
 

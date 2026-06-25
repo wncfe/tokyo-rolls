@@ -87,8 +87,10 @@ def get_categories_with_products(request):
     """
     # Prefetch с фильтром — чтобы .filter() в цикле не делал новых запросов
     categories = Category.objects.filter(is_active=True).prefetch_related(
-        Prefetch('products', queryset=Product.objects.filter(is_available=True).order_by('-created_at')),
-        Prefetch('subcategories__products', queryset=Product.objects.filter(is_available=True).order_by('-created_at')),
+        Prefetch('products', queryset=Product.objects.filter(is_available=True)
+                 .order_by('-created_at').prefetch_related('ingredients__allergens')),
+        Prefetch('subcategories__products', queryset=Product.objects.filter(is_available=True)
+                 .order_by('-created_at').prefetch_related('ingredients__allergens')),
         'subcategories',
     ).order_by('sort_order')
 

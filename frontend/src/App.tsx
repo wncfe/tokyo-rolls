@@ -114,7 +114,8 @@ export default function App() {
             </div>
             {cart.length > 0 ? (() => {
               const floatingSubtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-              const floatingDiscount = orderType === "pickup" ? Math.round(floatingSubtotal * 0.1) : 0;
+              const pickupPct = restaurantSettings?.pickup_discount_percent ?? 10;
+              const floatingDiscount = orderType === "pickup" ? Math.round(floatingSubtotal * pickupPct / 100) : 0;
               const floatingTotal = floatingSubtotal - floatingDiscount;
               return (
                 <span className="font-mono text-sm tracking-tight leading-none pt-0.5">

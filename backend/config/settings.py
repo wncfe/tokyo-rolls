@@ -21,12 +21,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Read secret key from environment. Do NOT commit a real secret to the repo.
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'change-me-set-DJANGO_SECRET_KEY-in-env')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-# Read DEBUG from environment (defaults to True for local development).
+# Read secret key from environment.
+# In DEBUG mode a random key is generated automatically (sessions invalidate on restart).
+# In PRODUCTION you MUST set DJANGO_SECRET_KEY or the server will refuse to start.
+_secret = os.environ.get('DJANGO_SECRET_KEY', '')
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+
+if not _secret:
+    if DEBUG:
+        import secrets
+        _secret = 'dev-' + secrets.token_urlsafe(48)
+        print(f'WARNING: DJANGO_SECRET_KEY not set. Using random dev key: {_secret[:16]}...')
+    else:
+        raise RuntimeError(
+            'DJANGO_SECRET_KEY environment variable is required in production. '
+            'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(64))"'
+        )
+
+SECRET_KEY = _secret
 
 # Read ALLOWED_HOSTS from environment (comma-separated). Defaults to localhost for development.
 _allowed = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')

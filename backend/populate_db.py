@@ -651,6 +651,106 @@ for set_slug, included_items in set_items_map.items():
         else:
             print(f'  ⚠️  Продукт {prod_slug} не найден для сета {menu_set.name}')
 
+# ═════════════════════════════════════════
+#  ТЕСТОВЫЕ ДАННЫЕ: пользователи, адреса, промокоды
+# ═════════════════════════════════════════
+
+# ── Очистка тестовых данных (не трогаем продукты/сеты) ──
+OrderItem.objects.all().delete()
+Order.objects.all().delete()
+Address.objects.all().delete()
+UserProfile.objects.all().delete()
+User.objects.filter(username__startswith='+7').delete()
+PromoCode.objects.all().delete()
+from api.models import RestaurantSettings as RS
+RS.objects.all().delete()
+
+# ── RestaurantSettings (инициализация) ──
+RS.objects.create(
+    opening_hour=11, closing_hour=23,
+    min_order_amount=700, free_delivery_from=1500,
+    suburban_delivery_fee=100,
+    delivery_time_min=45, delivery_time_max=60,
+    restaurant_address='г Пермь, ул Ленина, д 88',
+    pickup_discount_percent=10,
+)
+print('✅ Настройки ресторана: 11:00–23:00, мин. заказ 700₽, доставка от 1500₽')
+
+# ── Пользователи ──
+from django.contrib.auth.models import User
+from api.models import UserProfile
+
+print('\n── ПОЛЬЗОВАТЕЛИ ──')
+
+user_a = User.objects.create_user(username='+79991111111', password=None)
+user_a.set_unusable_password(); user_a.save()
+UserProfile.objects.create(user=user_a, phone='+79991111111')
+print('✅ Юзер A: +7 (999) 111-11-11 — с адресами')
+
+user_b = User.objects.create_user(username='+79992222222', password=None)
+user_b.set_unusable_password(); user_b.save()
+UserProfile.objects.create(user=user_b, phone='+79992222222')
+print('✅ Юзер B: +7 (999) 222-22-22 — пустой профиль')
+
+user_c = User.objects.create_user(username='+79993333333', password=None)
+user_c.set_unusable_password(); user_c.save()
+UserProfile.objects.create(user=user_c, phone='+79993333333')
+print('✅ Юзер C: +7 (999) 333-33-33 — для auth-тестов')
+
+# ── Адреса для Юзера A ──
+from api.models import Address
+
+print('\n── АДРЕСА ──')
+
+Address.objects.create(user=user_a,
+    full_address='г Пермь, ул Ленина, д 1', flat='42',
+    entrance='1', floor='5', intercom='42K',
+    comment='Позвонить', is_default=True)
+print('✅ Адрес A1: г Пермь, ул Ленина, д 1 (основной)')
+
+Address.objects.create(user=user_a,
+    full_address='г Пермь, ул Сибирская, д 15',
+    flat='10', entrance='2', is_default=False)
+print('✅ Адрес A2: г Пермь, ул Сибирская, д 15')
+
+# ── Промокоды ──
+from django.utils import timezone
+from datetime import timedelta
+from api.models import PromoCode
+
+print('\n── ПРОМОКОДЫ ──')
+
+PromoCode.objects.create(code='TOKYO10', discount_percent=10,
+    description='Скидка 10%', is_active=True,
+    valid_from=timezone.now() - timedelta(days=30),
+    valid_until=timezone.now() + timedelta(days=30))
+print('✅ TOKYO10 — активен (10%)')
+
+PromoCode.objects.create(code='EXPIRED50', discount_percent=50,
+    description='Истекшая скидка 50%', is_active=True,
+    valid_from=timezone.now() - timedelta(days=60),
+    valid_until=timezone.now() - timedelta(days=1))
+print('✅ EXPIRED50 — истёк (50%)')
+
+PromoCode.objects.create(code='FUTURE20', discount_percent=20,
+    description='Будущая скидка 20%', is_active=True,
+    valid_from=timezone.now() + timedelta(days=7),
+    valid_until=timezone.now() + timedelta(days=37))
+print('✅ FUTURE20 — ещё не действует (20%)')
+
+PromoCode.objects.create(code='WELCOME', discount_percent=15,
+    description='Приветственная скидка 15%', is_active=True,
+    valid_from=None, valid_until=None)
+print('✅ WELCOME — активен бессрочно (15%)')
+
+PromoCode.objects.create(code='DISABLED5', discount_percent=5,
+    description='Отключённый промокод 5%', is_active=False,
+    valid_from=None, valid_until=None)
+print('✅ DISABLED5 — неактивен (5%)')
+
+# ═════════════════════════════════════════
+#  ФИНАЛЬНАЯ СТАТИСТИКА
+# ═════════════════════════════════════════
 
 print(f'\n🎉 ГОТОВО!')
 print(f'   Категорий: {Category.objects.count()}')
@@ -660,3 +760,7 @@ print(f'   Сетов: {Set.objects.count()}')
 print(f'   Позиций в сетах: {SetItem.objects.count()}')
 print(f'   Ингредиентов: {Ingredient.objects.count()}')
 print(f'   Аллергенов: {Allergen.objects.count()}')
+print(f'   Пользователей: {User.objects.exclude(username__startswith="anon").count() - 1}')
+print(f'   Адресов: {Address.objects.count()}')
+print(f'   Промокодов: {PromoCode.objects.count()}')
+print(f'   Настройки ресторана: есть')
