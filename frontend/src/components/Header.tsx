@@ -70,7 +70,7 @@ export default function Header({ user, onOpenAuth, onLogout, orderType, onOrderT
               </span>
               <button
                 onClick={onLogout}
-                className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-red-500 px-3 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer select-none"
+                className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-red-500 px-3 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer select-none"
                 title="Выйти"
               >
                 <LogOut className="w-4 h-4" />
@@ -80,7 +80,7 @@ export default function Header({ user, onOpenAuth, onLogout, orderType, onOrderT
           ) : (
             <button
               onClick={onOpenAuth}
-              className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 px-3.5 py-2 rounded-xl text-sm font-medium transition-all select-none cursor-pointer"
+              className="flex items-center gap-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 px-3.5 py-2 rounded-xl text-sm font-bold transition-all select-none cursor-pointer"
             >
               <User className="w-4 h-4 text-slate-400" />
               <span className="hidden sm:inline">Войти</span>

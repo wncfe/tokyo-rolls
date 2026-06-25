@@ -1,4 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400..900&display=swap');
+
 @import "tailwindcss";
+
+@theme {
+  --font-sans: 'Onest', sans-serif;
+}
 
 @keyframes scaleUp {
   from {

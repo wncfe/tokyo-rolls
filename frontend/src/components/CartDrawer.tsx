@@ -65,7 +65,7 @@ export default function CartDrawer({
         <div className="p-5 border-b border-slate-150 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5 text-[#E11D48]" />
-            <h2 className="text-slate-900 text-lg font-black tracking-tight select-none">
+            <h2 className="text-slate-900 text-xl font-black tracking-tight select-none">
               Твоя корзина
             </h2>
             {totalItems > 0 && (
@@ -90,7 +90,7 @@ export default function CartDrawer({
             <div className="flex items-center bg-white border border-slate-200 rounded-xl p-0.5 select-none">
               <button
                 onClick={() => onOrderTypeChange('delivery')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer focus:outline-none ${
                   orderType === 'delivery'
                     ? 'bg-slate-900 text-white shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
@@ -101,7 +101,7 @@ export default function CartDrawer({
               </button>
               <button
                 onClick={() => onOrderTypeChange('pickup')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus:outline-none ${
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer focus:outline-none ${
                   orderType === 'pickup'
                     ? 'bg-[#E11D48] text-white shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
@@ -112,7 +112,7 @@ export default function CartDrawer({
               </button>
             </div>
             {orderType === 'pickup' && settings.restaurant_address && (
-              <p className="mt-2 text-[10px] text-slate-500 text-center font-medium">
+              <p className="mt-2 text-xs text-slate-500 text-center font-medium">
                 🥡 Самовывоз: {settings.restaurant_address}
               </p>
             )}

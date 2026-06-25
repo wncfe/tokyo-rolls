@@ -58,17 +58,17 @@ export default function MenuSections({
         return (
           <section key={slug} id={`category-${slug}`} className={`${slug === 'sets' ? 'mb-14' : 'mb-14 pt-10'} scroll-mt-40`}>
             <div className="flex items-baseline gap-3 mb-6 border-b border-slate-100 pb-3">
-              <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 uppercase font-sans">
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 uppercase font-sans">
                 {config.title}
               </h2>
-              <span className="text-slate-400 font-mono text-xs select-none">{config.subtitle}</span>
+              <span className="text-slate-500 font-mono text-sm select-none">{config.subtitle}</span>
             </div>
 
             {isRolls ? (
               <>
                 {ROLLS_SUBCATEGORIES.map((sub) => (
                   <div key={sub.slug} id={ROLLS_SECTION_IDS[sub.slug]} className="scroll-mt-48 pt-6 mb-10">
-                    <h3 className="text-lg md:text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2 mb-4">
+                    <h3 className="text-xl md:text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2 mb-5">
                       <span className="inline-block w-2.5 h-2.5 bg-[#E11D48] rounded-full" />
                       {sub.title}
                     </h3>

@@ -11,7 +11,7 @@ export default function CartEmptyState({ onClose }: CartEmptyStateProps) {
         <ShoppingBag className="w-7 h-7 text-slate-400" />
       </div>
       <h3 className="text-slate-900 font-bold text-lg mb-1 tracking-tight">Корзина пуста</h3>
-      <p className="text-slate-400 text-xs max-w-xs leading-relaxed">
+      <p className="text-slate-400 text-sm max-w-xs leading-relaxed">
         Добавь сочные сеты, свежие суши или запеченные роллы из нашего меню, чтобы оформить доставку!
       </p>
       <button

@@ -119,7 +119,7 @@ export default function CheckoutFooter({
 
   // ── Button text & style ──────────────────────────────
   let btnText = "Оформить заказ";
-  let btnClasses = "w-full py-4 font-bold text-xs md:text-sm uppercase rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 border border-transparent select-none";
+  let btnClasses = "w-full py-5 font-bold text-sm md:text-base uppercase rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 border border-transparent select-none";
 
   if (isSubmitting) {
     btnText = "Оформляем...";
@@ -148,7 +148,7 @@ export default function CheckoutFooter({
     <div className="p-5 bg-white">
       {/* Order error */}
       {orderError && (
-        <div className="mb-4 bg-red-50 border border-red-200 p-3.5 rounded-2xl text-xs flex items-start gap-2 text-red-800 animate-fadeIn">
+        <div className="mb-4 bg-red-50 border border-red-200 p-4 rounded-2xl text-sm flex items-start gap-2 text-red-800 animate-fadeIn">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{orderError}</span>
         </div>
@@ -159,53 +159,53 @@ export default function CheckoutFooter({
         <div className="mb-4 bg-amber-50 border border-amber-200 p-4 rounded-2xl flex flex-col gap-2 animate-fadeIn">
           <div className="flex items-center gap-2 text-amber-800">
             <ShieldAlert className="w-5 h-5 shrink-0" />
-            <span className="text-xs font-bold">Авторизуйтесь, чтобы оформить заказ</span>
+            <span className="text-sm font-bold">Авторизуйтесь, чтобы оформить заказ</span>
           </div>
-          <p className="text-[10px] text-amber-600 leading-relaxed">
+          <p className="text-xs text-amber-600 leading-relaxed">
             Войдите по номеру телефона — это займёт меньше минуты. Ваша корзина сохранится.
           </p>
         </div>
       ) : !isOpenStatus ? (
-        <div className="mb-4 bg-orange-50 border border-orange-100/70 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-orange-800 select-none animate-fadeIn">
+        <div className="mb-4 bg-orange-50 border border-orange-100/70 p-4 rounded-2xl text-sm flex flex-col gap-1 text-orange-800 select-none animate-fadeIn">
           <span className="font-bold flex items-center gap-1.5">⏳ Ресторан закрыт</span>
           <span>Принимаем онлайн-заказы ежедневно с {settings.opening_hour}:00 до {settings.closing_hour}:00.</span>
         </div>
       ) : isTooLow ? (
-        <div className="mb-4 bg-rose-50 border border-rose-100 p-3.5 rounded-2xl text-xs flex flex-col gap-1 text-[#E11D48] select-none animate-fadeIn">
+        <div className="mb-4 bg-rose-50 border border-rose-100 p-4 rounded-2xl text-sm flex flex-col gap-1 text-[#E11D48] select-none animate-fadeIn">
           <span className="font-bold flex items-center gap-1.5">🍅 Минимальная сумма заказа</span>
           <span>Добавь в корзину блюд еще на <strong className="font-black">{(minOrder - effectiveTotal).toLocaleString('ru-RU')} ₽</strong> для оформления заказа.</span>
         </div>
       ) : isUndeliverable ? (
-        <div className="mb-4 bg-red-50 border border-red-200 p-3.5 rounded-2xl text-xs flex flex-col gap-0.5 text-red-800 animate-fadeIn">
+        <div className="mb-4 bg-red-50 border border-red-200 p-4 rounded-2xl text-sm flex flex-col gap-0.5 text-red-800 animate-fadeIn">
           <span className="font-bold text-red-900">⛔ Адрес вне зоны доставки</span>
-          <p className="text-[11px] text-red-700 leading-tight">К сожалению, по этому адресу доставка не осуществляется. Выберите другой адрес.</p>
+          <p className="text-xs text-red-700 leading-tight">К сожалению, по этому адресу доставка не осуществляется. Выберите другой адрес.</p>
         </div>
       ) : orderType === 'pickup' ? (
-        <div className="mb-4 bg-violet-50 border border-violet-100/70 p-3.5 rounded-2xl text-xs text-violet-800 flex flex-col gap-0.5 animate-fadeIn">
+        <div className="mb-4 bg-violet-50 border border-violet-100/70 p-4 rounded-2xl text-sm text-violet-800 flex flex-col gap-0.5 animate-fadeIn">
           <span className="font-bold text-violet-900">🥡 Самовывоз из ресторана</span>
-          <p className="text-[11px] text-violet-700 leading-tight">Забери заказ сам — скидка {settings.pickup_discount_percent ?? 10}% на всё меню уже учтена в итоговой сумме.</p>
+          <p className="text-xs text-violet-700 leading-tight">Забери заказ сам — скидка {settings.pickup_discount_percent ?? 10}% на всё меню уже учтена в итоговой сумме.</p>
         </div>
       ) : orderType === 'delivery' && zoneInfo ? (
         zoneInfo.zone === 'free_delivery' ? (
-          <div className="mb-4 bg-emerald-50 border border-emerald-100/70 p-3.5 rounded-2xl text-xs text-emerald-800 flex flex-col gap-0.5 animate-fadeIn">
+          <div className="mb-4 bg-emerald-50 border border-emerald-100/70 p-4 rounded-2xl text-sm text-emerald-800 flex flex-col gap-0.5 animate-fadeIn">
             <span className="font-bold text-emerald-900">✨ Доставка бесплатная!</span>
-            <p className="text-[11px] text-emerald-700 leading-tight">Вы в зоне бесплатной доставки. Минимальная сумма заказа {zoneInfo.min_order_amount} ₽.</p>
+            <p className="text-xs text-emerald-700 leading-tight">Вы в зоне бесплатной доставки. Минимальная сумма заказа {zoneInfo.min_order_amount} ₽.</p>
           </div>
         ) : (
           <div className="mb-4 bg-amber-50 border border-amber-100/70 p-3.5 rounded-2xl text-xs text-amber-800 flex flex-col gap-0.5 animate-fadeIn">
             <span className="font-bold text-amber-900">🚚 Доставка: {zoneInfo.delivery_fee} ₽</span>
-            <p className="text-[11px] text-amber-700 leading-tight">Вы в зоне платной доставки. Минимальная сумма заказа {zoneInfo.min_order_amount} ₽.</p>
+            <p className="text-xs text-amber-700 leading-tight">Вы в зоне платной доставки. Минимальная сумма заказа {zoneInfo.min_order_amount} ₽.</p>
           </div>
         )
       ) : orderType === 'delivery' && isCheckingZone ? (
-        <div className="mb-4 bg-slate-50 border border-slate-100/70 p-3.5 rounded-2xl text-xs text-slate-500 flex items-center gap-2 animate-fadeIn">
+        <div className="mb-4 bg-slate-50 border border-slate-100/70 p-4 rounded-2xl text-sm text-slate-500 flex items-center gap-2 animate-fadeIn">
           <Loader2 className="w-3 h-3 animate-spin" />
           <span>Проверяем зону доставки...</span>
         </div>
       ) : orderType === 'delivery' && !selectedAddressId ? (
-        <div className="mb-4 bg-slate-50 border border-slate-100/70 p-3.5 rounded-2xl text-xs text-slate-500 flex flex-col gap-0.5 animate-fadeIn">
+        <div className="mb-4 bg-slate-50 border border-slate-100/70 p-4 rounded-2xl text-sm text-slate-500 flex flex-col gap-0.5 animate-fadeIn">
           <span className="font-bold text-slate-600">📍 Выберите адрес доставки</span>
-          <p className="text-[11px] leading-tight">Добавьте или выберите сохранённый адрес, чтобы увидеть стоимость доставки.</p>
+          <p className="text-xs leading-tight">Добавьте или выберите сохранённый адрес, чтобы увидеть стоимость доставки.</p>
         </div>
       ) : null}
 
@@ -234,22 +234,22 @@ export default function CheckoutFooter({
             value={promoCode}
             onChange={(e) => { setPromoCode(e.target.value); setPromoError(null); }}
             placeholder="Промокод"
-            className="flex-1 px-3.5 py-2.5 text-xs font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all uppercase"
+            className="flex-1 px-4 py-3 text-sm font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all uppercase"
           />
           <button
             type="button"
             onClick={handlePromoApply}
             disabled={!promoCode.trim()}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl border border-slate-200 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Применить
           </button>
         </div>
         {promoError && (
-          <p className="mt-1.5 text-[10px] text-red-500 font-medium">{promoError}</p>
+          <p className="mt-1.5 text-xs text-red-500 font-medium">{promoError}</p>
         )}
         {promoData && (
-          <p className="mt-1.5 text-[10px] text-emerald-600 font-medium">
+          <p className="mt-1.5 text-xs text-emerald-600 font-medium">
             ✅ Промокод применён!
           </p>
         )}
@@ -257,7 +257,7 @@ export default function CheckoutFooter({
 
       {/* Payment Method */}
       <div className="mb-4">
-        <label className="block text-xs font-bold text-slate-500 mb-1.5 select-none">
+        <label className="block text-sm font-bold text-slate-500 mb-1.5 select-none">
           Способ оплаты
         </label>
         <PaymentMethodDropdown
@@ -267,20 +267,20 @@ export default function CheckoutFooter({
       </div>
 
       {/* Split Price summary */}
-      <div className="space-y-2 mb-5">
-        <div className="flex items-center justify-between text-xs text-slate-400 select-none">
+      <div className="space-y-3 mb-5">
+        <div className="flex items-center justify-between text-sm text-slate-500 select-none">
           <span>Итого товаров</span>
-          <span className="font-mono text-slate-600 font-medium">{totalItems} шт</span>
+          <span className="font-mono text-slate-700 font-medium">{totalItems} шт</span>
         </div>
         {orderType === 'delivery' && (() => {
           const fee = zoneInfo?.delivery_fee;
           if (fee === undefined || fee === null) return null;
           return (
-            <div className="flex items-center justify-between text-xs text-slate-400 select-none">
+            <div className="flex items-center justify-between text-sm text-slate-500 select-none">
               <span>Доставка</span>
               <span className={fee === 0
-                ? "text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider text-[10px]"
-                : "text-amber-700 bg-amber-50 border border-amber-100/50 px-2 py-0.5 rounded-md font-bold font-mono text-[10px]"
+                ? "text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider text-xs"
+                : "text-amber-700 bg-amber-50 border border-amber-100/50 px-2.5 py-0.5 rounded-md font-bold font-mono text-xs"
               }>
                 {fee === 0 ? 'БЕСПЛАТНО' : `${fee} ₽`}
               </span>
@@ -288,20 +288,20 @@ export default function CheckoutFooter({
           );
         })()}
         {orderType === 'pickup' && pickupDiscount > 0 && (
-          <div className="flex items-center justify-between text-xs text-slate-400 select-none">
+          <div className="flex items-center justify-between text-sm text-slate-500 select-none">
             <span>Скидка за самовывоз ({settings.pickup_discount_percent ?? 10}%)</span>
-            <span className="text-violet-700 bg-violet-50 border border-violet-100/50 px-2 py-0.5 rounded-md font-bold font-mono text-[10px]">−{pickupDiscount.toLocaleString('ru-RU')} ₽</span>
+            <span className="text-violet-700 bg-violet-50 border border-violet-100/50 px-2.5 py-0.5 rounded-md font-bold font-mono text-xs">−{pickupDiscount.toLocaleString('ru-RU')} ₽</span>
           </div>
         )}
         {promoData && promoDiscountAmount > 0 && (
-          <div className="flex items-center justify-between text-xs text-slate-400 select-none">
+          <div className="flex items-center justify-between text-sm text-slate-500 select-none">
             <span>Промокод ({promoData.discount_percent}%)</span>
-            <span className="text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2 py-0.5 rounded-md font-bold font-mono text-[10px]">−{promoDiscountAmount.toLocaleString('ru-RU')} ₽</span>
+            <span className="text-emerald-700 bg-emerald-50 border border-emerald-100/50 px-2.5 py-0.5 rounded-md font-bold font-mono text-xs">−{promoDiscountAmount.toLocaleString('ru-RU')} ₽</span>
           </div>
         )}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-          <span className="text-slate-900 text-sm font-bold select-none">Общая сумма:</span>
-          <span className="text-[#E11D48] text-xl font-mono font-black tracking-tight">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+          <span className="text-slate-900 text-base font-black select-none">Общая сумма:</span>
+          <span className="text-[#E11D48] text-2xl md:text-3xl font-mono font-black tracking-tight">
             {effectiveTotal.toLocaleString('ru-RU')} ₽
           </span>
         </div>

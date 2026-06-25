@@ -22,7 +22,7 @@ export default function HeroBanner({ isOpen, settings }: HeroBannerProps) {
             Премиальная доставка в Перми
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] mb-4 text-slate-900">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-4 text-slate-900">
             Вкус, отточенный <br className="hidden md:inline" />
             до <span className="text-[#E11D48]">абсолютного совершенства</span>
           </h1>

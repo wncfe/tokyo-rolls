@@ -23,10 +23,10 @@ export default function CartItemRow({ item, onAddToCart, onRemoveFromCart, onCle
 
       {/* Details */}
       <div className="flex-1 min-w-0">
-        <h4 className="text-slate-900 text-xs font-bold truncate tracking-tight mb-0.5 group-hover:text-[#E11D48] transition-colors">
+        <h4 className="text-slate-900 text-sm font-bold truncate tracking-tight mb-0.5 group-hover:text-[#E11D48] transition-colors">
           {item.product.name}
         </h4>
-        <p className="text-slate-400 text-[10px] font-mono select-none">
+        <p className="text-slate-500 text-xs font-mono select-none">
           {item.product.weight} г • {item.product.price} ₽
         </p>
 
@@ -36,25 +36,25 @@ export default function CartItemRow({ item, onAddToCart, onRemoveFromCart, onCle
           <div className="flex items-center bg-white border border-slate-200 rounded-xl p-0.5 select-none">
             <button
               onClick={() => onRemoveFromCart(item.product.id)}
-              className="w-6.5 h-6.5 rounded-lg bg-slate-50 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer border border-slate-200/40"
+              className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer border border-slate-200/40"
               title="Уменьшить"
             >
-              <Minus className="w-3 h-3" />
+              <Minus className="w-3.5 h-3.5" />
             </button>
-            <span className="text-slate-900 font-mono text-xs font-bold min-w-6 text-center">
+            <span className="text-slate-900 font-mono text-sm font-bold min-w-7 text-center">
               {item.quantity}
             </span>
             <button
               onClick={() => onAddToCart(item.product.id)}
-              className="w-6.5 h-6.5 rounded-lg bg-slate-50 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer border border-slate-200/40"
+              className="w-8 h-8 rounded-lg bg-[#E11D48] hover:bg-[#BE123C] text-white flex items-center justify-center transition-colors cursor-pointer border-0"
               title="Добавить"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Total item amount */}
-          <span className="text-slate-900 font-mono text-xs font-bold">
+          <span className="text-slate-900 font-mono text-sm font-bold">
             {(item.product.price * item.quantity).toLocaleString('ru-RU')} ₽
           </span>
         </div>
