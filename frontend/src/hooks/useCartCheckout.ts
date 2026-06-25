@@ -80,9 +80,8 @@ export function useCartCheckout(isOpen: boolean) {
 
       // Если ЮKassa вернула payment_url — редиректим пользователя на оплату
       if (result.payment_url) {
-        // Параметр order_id нужен для страницы возврата с оплаты
-        const returnUrl = new URL(result.payment_url, window.location.origin);
-        // Уже содержит return_url из настроек; просто редиректим
+        // Очищаем корзину до редиректа на ЮKassa
+        onClearCart();
         window.location.href = result.payment_url;
         return;
       }

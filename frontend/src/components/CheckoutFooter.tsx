@@ -103,14 +103,15 @@ export default function CheckoutFooter({
       .catch(() => { if (!cancelled) setZoneInfo(null); })
       .finally(() => { if (!cancelled) setIsCheckingZone(false); });
     return () => { cancelled = true; };
-  }, [selectedAddressId, orderType]);
+  }, [selectedAddressId, orderType, user]);
 
   // ── Derived values ──────────────────────────────────
   const minOrder = orderType === 'delivery' && zoneInfo
     ? zoneInfo.min_order_amount
     : settings.min_order_amount;
   const promoDiscountAmount = promoData ? Math.round(subtotal * promoData.discount_percent / 100) : 0;
-  const effectiveTotal = totalPrice - promoDiscountAmount;
+  const deliveryFeeAmount = orderType === 'delivery' && zoneInfo ? zoneInfo.delivery_fee : 0;
+  const effectiveTotal = totalPrice - promoDiscountAmount + deliveryFeeAmount;
   const isTooLow = effectiveTotal < minOrder;
   const isAddressEmpty = orderType === 'delivery' && !selectedAddressId && deliveryAddress.trim().length === 0;
   const isAuthenticated = !!user;
