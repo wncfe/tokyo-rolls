@@ -148,3 +148,46 @@ export interface OrderResponse {
   payment_url?: string;
   // ... other fields from OrderReadSerializer
 }
+
+// Detail of a single item inside an order (from OrderItemReadSerializer)
+export interface OrderItemDetail {
+  id: number;
+  product_name: string;
+  unit_price: number;
+  quantity: number;
+  weight_grams: number;
+  line_total: number;
+}
+
+// Full order detail from backend (OrderReadSerializer) — used in OrderTracker
+export interface OrderDetail {
+  id: number;
+  status: string;
+  customer_name: string;
+  customer_phone: string;
+  delivery_address: string;
+  comment: string;
+  order_type: 'delivery' | 'pickup';
+  payment_method: PaymentMethod;
+  subtotal: number;
+  discount_amount: number;
+  delivery_fee: number;
+  total: number;
+  payment_id: string;
+  payment_url: string;
+  yookassa_status: string;
+  created_at: string; // ISO datetime
+  items: OrderItemDetail[];
+}
+
+// Visual timeline step (computed on frontend)
+export interface TimelineStep {
+  key: string;
+  label: string;
+  icon: string;
+  isCompleted: boolean;
+  isCurrent: boolean;
+}
+
+// Human-readable status label mapping
+export type OrderStatusLabel = 'Не оплачен' | 'Принят' | 'Готовим' | 'В пути' | 'Готов' | 'Доставлен' | 'Отменён' | 'Выполнен';

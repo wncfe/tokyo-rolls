@@ -1,4 +1,4 @@
-import { Product, Set, MenuItem, AuthTokens, PhoneAuthData, VerifyCodeData, User, Address, AddressFormData, RestaurantSettings, CheckoutData, PaymentStatusResult, DeliveryZoneInfo } from './types';
+import { Product, Set, MenuItem, AuthTokens, PhoneAuthData, VerifyCodeData, User, Address, AddressFormData, RestaurantSettings, CheckoutData, PaymentStatusResult, DeliveryZoneInfo, OrderDetail } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -291,6 +291,29 @@ export async function checkDeliveryZone(addressId: number): Promise<DeliveryZone
 
 /** Получить статус оплаты заказа (опрос после возврата с ЮKassa). */
 export async function fetchPaymentStatus(orderId: number): Promise<PaymentStatusResult> {
-  const response = await fetch(`${API_BASE_URL}/payment/status/${orderId}/`);
+  const response = await fetch(`${API_BASE_URL}/payment/status/${orderId}/`, {
+    // bust browser cache — status changes between polls
+    cache: 'no-store',
+  });
+  return handleResponse(response);
+}
+
+// ─── Order Tracking ───
+
+/** Получить активный (последний незавершённый) заказ пользователя. */
+export async function fetchActiveOrder(): Promise<OrderDetail | null> {
+  const response = await fetch(`${API_BASE_URL}/orders/active/`, {
+    headers: authHeaders(),
+    cache: 'no-store',
+  });
+  if (response.status === 204) return null;
+  return handleResponse(response);
+}
+
+/** Получить полную информацию о заказе (для трекера). */
+export async function fetchOrderDetail(orderId: number): Promise<OrderDetail> {
+  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/`, {
+    cache: 'no-store',
+  });
   return handleResponse(response);
 }

@@ -1,5 +1,4 @@
-﻿import { useState } from "react";
-import { ShoppingBag } from "lucide-react";
+﻿import { useState, useEffect } from "react";
 import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
 import ProductModal from "./components/ProductModal";
@@ -7,7 +6,8 @@ import CartDrawer from "./components/CartDrawer";
 import AuthModal from "./components/AuthModal";
 import HeroBanner from "./components/HeroBanner";
 import MenuSections from "./components/MenuSections";
-import PaymentResultPage from "./components/PaymentResultPage";
+import OrderTrackerDrawer from "./components/OrderTrackerDrawer";
+import OrderTrackerButton from "./components/OrderTrackerButton";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { MenuItem } from "./types";
 import { useCart } from "./hooks/useCart";
@@ -15,6 +15,8 @@ import { useAuth } from "./hooks/useAuth";
 import { useMenu } from "./hooks/useMenu";
 import { useScrollSpy } from "./hooks/useScrollSpy";
 import { useRestaurantStatus } from "./hooks/useRestaurantStatus";
+import { useActiveOrder } from "./hooks/useActiveOrder";
+import { fetchOrderDetail } from "./api";
 
 export default function App() {
   // Hooks
@@ -30,22 +32,35 @@ export default function App() {
   } = useMenu();
   const isRestaurantOpen = useRestaurantStatus(restaurantSettings);
   const { activeCategory, activeSubcategory, navigateTo } = useScrollSpy();
+  const { activeOrder, refreshActiveOrder } = useActiveOrder();
 
   // UI state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const [orderType, setOrderType] = useState<"delivery" | "pickup">("delivery");
 
-  // YooKassa payment return: detect ?payment_return=1 in URL
-  const [paymentReturnOrderId, setPaymentReturnOrderId] = useState<number | null>(() => {
+  // YooKassa payment return: detect ?order_id=N in URL → auto-open tracker
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('payment_return') === '1') {
-      const oid = params.get('order_id');
-      return oid && !isNaN(Number(oid)) ? Number(oid) : null;
+    const oid = params.get('order_id');
+    if (oid && !isNaN(Number(oid))) {
+      // Clean URL
+      window.history.replaceState({}, '', '/');
+      // Fetch order and open tracker
+      fetchOrderDetail(Number(oid)).then((order) => {
+        refreshActiveOrder();
+        setIsTrackerOpen(true);
+      }).catch(() => {
+        // silently ignore — order may not exist yet
+      });
+    } else if (activeOrder) {
+      // Auto-open tracker on page load if active order exists
+      setIsTrackerOpen(true);
     }
-    return null;
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
 
   // Auth handlers (passwordless)
   const handleRequestCode = async (phone: string) => {
@@ -55,18 +70,12 @@ export default function App() {
   const handleVerifyCode = async (phone: string, code: string) => {
     await verifyPhoneCode(phone, code);
     setIsAuthModalOpen(false);
+    // After login — reload active order (could be a different user session)
+    refreshActiveOrder();
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-rose-500 selection:text-white pb-32">
-      {/* YooKassa payment return page — fullscreen overlay */}
-      {paymentReturnOrderId !== null ? (
-        <PaymentResultPage
-          orderId={paymentReturnOrderId}
-          onClose={() => setPaymentReturnOrderId(null)}
-        />
-      ) : (
-      <>
       <Header
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
@@ -117,36 +126,31 @@ export default function App() {
           </ErrorBoundary>
         )}
       </main>
-      {!isCartOpen && (
-        <div className="fixed bottom-4 right-4 z-40 animate-scaleUp">
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-3 bg-slate-950 border border-slate-800 text-white rounded-full shadow-2xl h-13 px-4 hover:bg-slate-900 active:scale-95 transition-all cursor-pointer font-bold select-none text-sm"
-          >
-            <div className="relative">
-              <ShoppingBag className="w-5 h-5 text-[#E11D48] stroke-[2.2]" />
-              {cart.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-slate-950">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                </span>
-              )}
-            </div>
-            {cart.length > 0 ? (() => {
-              const floatingSubtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-              const pickupPct = restaurantSettings?.pickup_discount_percent ?? 10;
-              const floatingDiscount = orderType === "pickup" ? Math.round(floatingSubtotal * pickupPct / 100) : 0;
-              const floatingTotal = floatingSubtotal - floatingDiscount;
-              return (
-                <span className="font-mono text-sm tracking-tight leading-none pt-0.5">
-                  {floatingTotal.toLocaleString("ru-RU")} {"\u20BD"}
-                </span>
-              );
-            })() : (
-              <span className="text-xs font-medium tracking-tight">Корзина</span>
-            )}
-          </button>
-        </div>
+      {/* Unified button: cart or tracker */}
+      {!isCartOpen && !isTrackerOpen && (
+        <OrderTrackerButton
+          activeOrder={activeOrder}
+          cart={cart}
+          orderType={orderType}
+          restaurantSettings={restaurantSettings}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenTracker={() => setIsTrackerOpen(true)}
+        />
       )}
+
+      {/* Order Tracker Drawer */}
+      {activeOrder && restaurantSettings && (
+        <OrderTrackerDrawer
+          isOpen={isTrackerOpen}
+          onClose={() => {
+            setIsTrackerOpen(false);
+            refreshActiveOrder();
+          }}
+          order={activeOrder}
+          settings={restaurantSettings}
+        />
+      )}
+
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -166,6 +170,11 @@ export default function App() {
         onRemoveFromCart={removeFromCart}
         onClearItem={clearItem}
         onClearCart={clearCart}
+        activeOrder={activeOrder}
+        onOpenTracker={() => {
+          setIsCartOpen(false);
+          setIsTrackerOpen(true);
+        }}
       />
       <ProductModal
         isOpen={selectedProduct !== null}
@@ -181,8 +190,6 @@ export default function App() {
         onRequestCode={handleRequestCode}
         onVerifyCode={handleVerifyCode}
       />
-    </>
-    )}
     </div>
   );
 }

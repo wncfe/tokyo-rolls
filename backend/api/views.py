@@ -504,6 +504,8 @@ def payment_status(request, order_id):
     Сначала смотрит локальный статус. Если локально заказ ещё не подтверждён,
     но у него есть payment_id — запрашивает ЮKassa API напрямую и обновляет
     статус заказа (актуально при разработке без вебхуков / падении вебхука).
+
+    Также авто-отменяет заказ, если он провисел в awaiting_payment > 10 минут.
     """
     try:
         order = Order.objects.get(pk=order_id)
@@ -513,11 +515,25 @@ def payment_status(request, order_id):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Если локально заказ ещё не подтверждён, проверяем ЮKassa напрямую
-    if order.status not in (
-        Order.Status.CONFIRMED,
-        Order.Status.PREPARING,
-        Order.Status.READY,
+    # Авто-отмена: если awaiting_payment дольше 10 минут
+    if order.status == Order.Status.AWAITING_PAYMENT:
+        elapsed = timezone.now() - order.created_at
+        if elapsed > timedelta(minutes=10):
+            order.status = Order.Status.CANCELLED
+            order.save(update_fields=['status'])
+            return Response({
+                'order_id': order.pk,
+                'status': order.status,
+                'yookassa_status': order.yookassa_status,
+                'paid': False,
+            })
+
+    # Если локально заказ ещё не прошёл оплату — проверяем ЮKassa напрямую.
+    # Только для пред-платёжных статусов! Не трогаем delivering/delivered/completed.
+    if order.status in (
+        Order.Status.AWAITING_PAYMENT,
+        Order.Status.UNPAID,
+        Order.Status.PENDING,
     ) and order.payment_id:
         from .services.yookassa import get_payment_info
 
@@ -542,3 +558,70 @@ def payment_status(request, order_id):
             Order.Status.READY,
         ),
     })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def active_order(request):
+    """Вернуть последний активный заказ пользователя (status != completed/cancelled).
+
+    Используется фронтендом для определения, показывать ли трекер заказа.
+    Возвращает полные данные заказа (OrderReadSerializer) или null.
+    """
+    order = (
+        Order.objects
+        .filter(user=request.user)
+        .exclude(status__in=[Order.Status.COMPLETED, Order.Status.CANCELLED])
+        .order_by('-created_at')
+        .first()
+    )
+    if order is None:
+        return Response(None)
+    return Response(OrderReadSerializer(order).data)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def order_detail(request, order_id):
+    """Получить полную информацию о заказе (для трекера).
+
+    В отличие от payment_status, возвращает полный OrderReadSerializer
+    с составом заказа (items), ценами, адресом и таймстемпом.
+    """
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist:
+        return Response(
+            {'detail': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Авто-отмена при истечении таймера (дублирует логику payment_status)
+    if order.status == Order.Status.AWAITING_PAYMENT:
+        elapsed = timezone.now() - order.created_at
+        if elapsed > timedelta(minutes=10):
+            order.status = Order.Status.CANCELLED
+            order.save(update_fields=['status'])
+            return Response(OrderReadSerializer(order).data)
+
+    # Fallback: если вебхук ещё не пришёл — проверяем ЮKassa напрямую.
+    # Только для пред-платёжных статусов! Не трогаем delivering/delivered/completed.
+    if order.status in (
+        Order.Status.AWAITING_PAYMENT,
+        Order.Status.UNPAID,
+        Order.Status.PENDING,
+    ) and order.payment_id:
+        from .services.yookassa import get_payment_info
+
+        info = get_payment_info(order.payment_id)
+        if info is not None:
+            order.yookassa_status = info['status']
+
+            if info['status'] == 'succeeded':
+                order.status = Order.Status.CONFIRMED
+            elif info['status'] == 'canceled':
+                order.status = Order.Status.CANCELLED
+
+            order.save(update_fields=['status', 'yookassa_status'])
+
+    return Response(OrderReadSerializer(order).data)

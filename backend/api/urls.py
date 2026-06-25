@@ -24,4 +24,6 @@ urlpatterns = [
     path('delivery/check-zone/', views.check_delivery_zone, name='delivery-check-zone'),
     path('payment/webhook/', views.payment_webhook, name='payment-webhook'),
     path('payment/status/<int:order_id>/', views.payment_status, name='payment-status'),
+    path('orders/active/', views.active_order, name='order-active'),
+    path('orders/<int:order_id>/', views.order_detail, name='order-detail'),
 ]

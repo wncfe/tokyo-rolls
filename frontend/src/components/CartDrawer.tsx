@@ -1,7 +1,8 @@
-import { X, ShoppingBag, Truck, Store } from 'lucide-react';
-import { CartItem, RestaurantSettings, User, Address } from '../types';
+import { X, ShoppingBag, Truck, Store, ClipboardCheck } from 'lucide-react';
+import { CartItem, RestaurantSettings, User, Address, OrderDetail } from '../types';
 import { useCartCheckout } from '../hooks/useCartCheckout';
 import { useCartAddress } from '../hooks/useCartAddress';
+import { getStatusLabel } from '../hooks/useOrderTracking';
 import CheckoutFooter from './CheckoutFooter';
 import CartItemRow from './CartItemRow';
 import CartEmptyState from './CartEmptyState';
@@ -23,6 +24,8 @@ interface CartDrawerProps {
   addresses: Address[];
   onOpenAuth: () => void;
   onRefreshAddresses: () => Promise<void>;
+  activeOrder: OrderDetail | null;
+  onOpenTracker: () => void;
 }
 
 export default function CartDrawer({
@@ -41,6 +44,8 @@ export default function CartDrawer({
   addresses,
   onOpenAuth,
   onRefreshAddresses,
+  activeOrder,
+  onOpenTracker,
 }: CartDrawerProps) {
   const checkout = useCartCheckout(isOpen);
   const addr = useCartAddress(addresses);
@@ -140,6 +145,31 @@ export default function CartDrawer({
           {/* FOOTER / ORDER SUCCESS — part of the scroll flow */}
           {checkout.orderSuccess ? (
             <OrderSuccess onClose={onClose} />
+          ) : activeOrder && cart.length > 0 ? (
+            /* Active order banner — блокирует checkout */
+            <div className="p-5 border-t border-slate-100 bg-amber-50">
+              <div className="bg-white border border-amber-200 rounded-xl p-4 text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <ClipboardCheck className="w-5 h-5 text-amber-600" />
+                  <span className="text-amber-800 font-bold text-sm">
+                    Активный заказ №{activeOrder.id}
+                  </span>
+                </div>
+                <p className="text-amber-600 text-xs leading-relaxed mb-3">
+                  У вас уже есть заказ в статусе «{getStatusLabel(activeOrder.status, activeOrder.order_type)}».
+                  Оформить новый заказ можно после его завершения.
+                </p>
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenTracker();
+                  }}
+                  className="px-5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-sm rounded-xl transition-all cursor-pointer select-none border border-amber-300"
+                >
+                  Отслеживать заказ
+                </button>
+              </div>
+            </div>
           ) : cart.length > 0 && (
             <CheckoutFooter
               cart={cart}
