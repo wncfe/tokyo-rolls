@@ -46,3 +46,6 @@ build/
 
 # Mac
 .DS_Store
+
+# Context
+PROJECT_CONTEXT.md
