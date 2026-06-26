@@ -27,9 +27,10 @@ services:
       # Static files (collected by entrypoint)
       - tokyo-static:/app/staticfiles
     ports:
-      # Not strictly needed — Nginx proxies to internal port
-      # Exposed only for direct debugging if needed
-      - "127.0.0.1:8000:8000"
+      # Expose backend port for debugging; Nginx talks over Docker network
+      - "8000:8000"
+    networks:
+      - tokyo-net
 
   frontend:
     build:
@@ -46,6 +47,12 @@ services:
       - tokyo-media:/usr/share/nginx/html/media:ro
     environment:
       VITE_API_URL: "/api"
+    networks:
+      - tokyo-net
+
+networks:
+  tokyo-net:
+    driver: bridge
 
 volumes:
   tokyo-db:
