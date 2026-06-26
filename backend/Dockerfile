@@ -1,24 +1,8 @@
 # ==============================================================
 # Tokyo Rolls — Backend Dockerfile
-# Python 3.12-slim + Gunicorn
+# Python 3.12-slim + Gunicorn (single-stage)
 # ==============================================================
 
-FROM python:3.12-slim AS builder
-
-WORKDIR /app
-
-# Install build dependencies (only needed for building)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libc6-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
-COPY requirements-prod.txt .
-RUN pip install --no-cache-dir --user -r requirements-prod.txt
-
-
-# ---- Final stage ----
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -26,11 +10,9 @@ WORKDIR /app
 # Create non-root user
 RUN addgroup --system app && adduser --system --group app
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
-
-# Make sure scripts in .local are in PATH
-ENV PATH=/root/.local/bin:$PATH
+# Install Python dependencies (system-wide)
+COPY requirements-prod.txt .
+RUN pip install --no-cache-dir -r requirements-prod.txt
 
 # Copy application code
 COPY . .
@@ -42,8 +24,16 @@ RUN chmod +x /entrypoint.sh
 # Create directories for staticfiles and media
 RUN mkdir -p /app/staticfiles /app/media
 
+# Give app user ownership
+RUN chown -R app:app /app
+
 # Switch to non-root user
 USER app
+
+# Expose port for Gunicorn
+EXPOSE 8000
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 # Expose port for Gunicorn
 EXPOSE 8000
