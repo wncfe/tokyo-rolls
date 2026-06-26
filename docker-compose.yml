@@ -20,6 +20,8 @@ services:
       - tokyo-media:/app/media
       # Static files (collected by entrypoint)
       - tokyo-static:/app/staticfiles
+      # Delivery zones GeoJSON (from project root)
+      - ./delivery_zones.geojson:/app/delivery_zones.geojson:ro
     ports:
       - "8000:8000"
 

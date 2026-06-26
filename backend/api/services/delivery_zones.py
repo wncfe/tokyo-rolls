@@ -7,15 +7,19 @@
 
 import json
 import os
+from pathlib import Path
 from typing import Optional
 
 
-# Абсолютный путь к GeoJSON-файлу относительно этого модуля
-_THIS_FILE = os.path.abspath(__file__)  # .../backend/api/services/delivery_zones.py
-_GEOJSON_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(_THIS_FILE)))),
-    'delivery_zones.geojson',
-)
+# Абсолютный путь к GeoJSON-файлу
+# В локальной разработке: __file__ → 4 уровня вверх → корень репозитория
+# В Docker (WORKDIR /app): __file__ → /app/api/services/..., а файл в /app/
+_THIS_FILE = Path(__file__).resolve()
+_GEOJSON_PATH = str(_THIS_FILE.parent.parent.parent.parent / 'delivery_zones.geojson')
+
+# Docker fallback: если файл не найден по вычисленному пути, проверяем /app/
+if not os.path.exists(_GEOJSON_PATH):
+    _GEOJSON_PATH = '/app/delivery_zones.geojson'
 
 # Кэш загруженных зон (lazy load при первом вызове)
 _zones_cache: Optional[dict] = None
