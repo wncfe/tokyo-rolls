@@ -9,14 +9,15 @@ import uuid
 from io import BytesIO
 
 import django
-from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
-from django.utils import timezone
-from datetime import timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
+
+from datetime import timedelta
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 from api.models import (
     Address, Allergen, Category, Ingredient, Order, OrderItem, Product,
