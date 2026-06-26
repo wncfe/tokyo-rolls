@@ -28,7 +28,7 @@ RUN mkdir -p /app/data /app/staticfiles /app/media
 RUN chown -R app:app /app
 
 # Switch to non-root user
-USER app
+# USER app  # временно отключено — volume permissions issue
 
 # Expose port for Gunicorn
 EXPOSE 8000
