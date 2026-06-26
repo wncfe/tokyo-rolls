@@ -169,8 +169,9 @@ REST_FRAMEWORK = {
 # Production security settings
 if not DEBUG:
     # SECURE_SSL_REDIRECT = True  # отключено: Nginx настраивает HTTPS позже
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    # SESSION_COOKIE_SECURE / CSRF_COOKIE_SECURE отключены — пока нет HTTPS
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
     SECURE_HSTS_SECONDS = 0  # отключено до настройки HTTPS
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
