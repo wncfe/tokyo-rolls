@@ -16,8 +16,9 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from api.models import (
-    Allergen, Category, Ingredient, Order, OrderItem, Product, ProductIngredient,
-    Set, SetIngredient, SetItem, SubCategory,
+    Address, Allergen, Category, Ingredient, Order, OrderItem, Product,
+    ProductIngredient, PromoCode, Set, SetIngredient, SetItem, SubCategory,
+    UserProfile,
 )
 
 
@@ -662,11 +663,10 @@ Address.objects.all().delete()
 UserProfile.objects.all().delete()
 User.objects.filter(username__startswith='+7').delete()
 PromoCode.objects.all().delete()
-from api.models import RestaurantSettings as RS
-RS.objects.all().delete()
+RestaurantSettings.objects.all().delete()
 
 # ── RestaurantSettings (инициализация) ──
-RS.objects.create(
+RestaurantSettings.objects.create(
     opening_hour=11, closing_hour=23,
     min_order_amount=700, free_delivery_from=1500,
     suburban_delivery_fee=100,
@@ -678,7 +678,6 @@ print('✅ Настройки ресторана: 11:00–23:00, мин. зак�
 
 # ── Пользователи ──
 from django.contrib.auth.models import User
-from api.models import UserProfile
 
 print('\n── ПОЛЬЗОВАТЕЛИ ──')
 
@@ -698,7 +697,6 @@ UserProfile.objects.create(user=user_c, phone='+79993333333')
 print('✅ Юзер C: +7 (999) 333-33-33 — для auth-тестов')
 
 # ── Адреса для Юзера A ──
-from api.models import Address
 
 print('\n── АДРЕСА ──')
 
@@ -716,7 +714,6 @@ print('✅ Адрес A2: г Пермь, ул Сибирская, д 15')
 # ── Промокоды ──
 from django.utils import timezone
 from datetime import timedelta
-from api.models import PromoCode
 
 print('\n── ПРОМОКОДЫ ──')
 
