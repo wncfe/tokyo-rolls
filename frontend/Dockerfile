@@ -8,6 +8,10 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# API URL — relative path: /api (same origin, proxied by Nginx)
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Copy package files and install dependencies
 COPY package.json package-lock.json* ./
 RUN npm ci
