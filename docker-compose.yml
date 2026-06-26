@@ -20,7 +20,7 @@ services:
       CORS_ALLOWED_ORIGINS: "http://138.16.165.77"
       YOOKASSA_RETURN_URL: "http://138.16.165.77"
     volumes:
-      # Persistent SQLite database — only the data dir, not /app (would overwrite code!)
+      # Persistent SQLite database (only data dir, not /app)
       - tokyo-db:/app/data
       # Persistent media files (product images, etc.)
       - tokyo-media:/app/media
