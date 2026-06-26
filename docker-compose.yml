@@ -1,0 +1,53 @@
+# ==============================================================
+# Tokyo Rolls — Docker Compose (MVP)
+# Backend: Gunicorn + Django + SQLite
+# Frontend: Nginx serves static + proxies API
+# ==============================================================
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tokyo-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Defaults for development; override via .env for production
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: "138.16.165.77,localhost,127.0.0.1"
+      CORS_ALLOWED_ORIGINS: "http://138.16.165.77"
+      YOOKASSA_RETURN_URL: "http://138.16.165.77"
+    volumes:
+      # Persistent SQLite database
+      - tokyo-db:/app
+      # Persistent media files (product images, etc.)
+      - tokyo-media:/app/media
+      # Static files (collected by entrypoint)
+      - tokyo-static:/app/staticfiles
+    ports:
+      # Not strictly needed — Nginx proxies to internal port
+      # Exposed only for direct debugging if needed
+      - "127.0.0.1:8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tokyo-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    volumes:
+      # Serve media files through Nginx directly
+      - tokyo-media:/usr/share/nginx/html/media:ro
+    environment:
+      VITE_API_URL: "/api"
+
+volumes:
+  tokyo-db:
+  tokyo-media:
+  tokyo-static:
