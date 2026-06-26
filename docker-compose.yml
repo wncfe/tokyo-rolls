@@ -13,12 +13,6 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      # Defaults for development; override via .env for production
-      DJANGO_DEBUG: "False"
-      DJANGO_ALLOWED_HOSTS: "138.16.165.77,localhost,127.0.0.1"
-      CORS_ALLOWED_ORIGINS: "http://138.16.165.77"
-      YOOKASSA_RETURN_URL: "http://138.16.165.77"
     volumes:
       # Persistent SQLite database (only data dir, not /app)
       - tokyo-db:/app/data
