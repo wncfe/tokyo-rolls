@@ -1,7 +1,6 @@
-import { X, Loader2 } from 'lucide-react';
-import { OrderDetail } from '../types';
-import { useOrderTracking, getStatusLabel, getStatusColor } from '../hooks/useOrderTracking';
-import { RestaurantSettings } from '../types';
+import { X, Loader2, ImageIcon } from 'lucide-react';
+import { OrderDetail, RestaurantSettings } from '../types';
+import { useOrderTracking, getStatusLabel, getStatusColor, getOrderProgress, getEstimatedMinutes } from '../hooks/useOrderTracking';
 import PaymentTimer from './PaymentTimer';
 import OrderTimeline from './OrderTimeline';
 
@@ -32,6 +31,12 @@ export default function OrderTrackerDrawer({
   const isCompleted = currentOrder.status === 'completed';
   const statusLabel = getStatusLabel(currentOrder.status, currentOrder.order_type);
   const statusColor = getStatusColor(currentOrder.status);
+  const progress = getOrderProgress(currentOrder.status);
+  const estimatedMin = getEstimatedMinutes(
+    currentOrder,
+    settings.delivery_time_min ?? 30,
+    settings.delivery_time_max ?? 60,
+  );
 
   if (!isOpen) return null;
 
@@ -83,9 +88,14 @@ export default function OrderTrackerDrawer({
             </div>
           )}
 
-          {/* Order Timeline — after payment or for non-online */}
+          {/* Order Progress — бар с шариками + SVG иконками */}
           <div className="border-b border-slate-100">
-            <OrderTimeline steps={timelineSteps} />
+            <OrderTimeline
+              steps={timelineSteps}
+              statusLabel={statusLabel}
+              status={currentOrder.status}
+              estimatedMinutes={estimatedMin}
+            />
           </div>
 
           {/* Poll error */}
@@ -119,25 +129,45 @@ export default function OrderTrackerDrawer({
             </div>
           )}
 
-          {/* Order Items — компактный read-only список */}
+          {/* Order Items — карточки с изображениями */}
           {currentOrder.items && currentOrder.items.length > 0 && (
             <div className="px-5 py-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 select-none">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 select-none">
                 Состав заказа
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {currentOrder.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between text-sm select-none"
+                    className="flex items-center gap-3 select-none"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="bg-slate-100 text-slate-500 text-xs font-mono px-1.5 py-0.5 rounded">
-                        {item.quantity}
-                      </span>
-                      <span className="text-slate-700 truncate font-medium">{item.product_name}</span>
+                    {/* Картинка товара */}
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                      {item.product_image ? (
+                        <img
+                          src={item.product_image}
+                          alt={item.product_name}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ImageIcon className="w-5 h-5 text-slate-300" />
+                        </div>
+                      )}
                     </div>
-                    <span className="text-slate-500 text-xs font-mono ml-3 shrink-0">
+                    {/* Инфо */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-bold text-slate-900 truncate leading-tight">
+                        {item.product_name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-slate-500 font-medium">×{item.quantity}</span>
+                      </div>
+                    </div>
+                    {/* Цена */}
+                    <span className="text-sm font-mono font-bold text-slate-700 shrink-0">
                       {item.line_total.toLocaleString('ru-RU')} ₽
                     </span>
                   </div>

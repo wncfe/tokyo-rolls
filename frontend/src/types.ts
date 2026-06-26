@@ -157,6 +157,7 @@ export interface OrderItemDetail {
   quantity: number;
   weight_grams: number;
   line_total: number;
+  product_image: string;
 }
 
 // Full order detail from backend (OrderReadSerializer) — used in OrderTracker
@@ -184,7 +185,7 @@ export interface OrderDetail {
 export interface TimelineStep {
   key: string;
   label: string;
-  icon: string;
+  iconName: string;
   isCompleted: boolean;
   isCurrent: boolean;
 }

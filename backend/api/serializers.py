@@ -433,9 +433,24 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
 
 class OrderItemReadSerializer(serializers.ModelSerializer):
+    product_image = serializers.SerializerMethodField()
+
     class Meta:
         model = OrderItem
-        fields = ['id', 'product_name', 'unit_price', 'quantity', 'weight_grams', 'line_total']
+        fields = ['id', 'product_name', 'unit_price', 'quantity', 'weight_grams', 'line_total', 'product_image']
+
+    def get_product_image(self, obj):
+        img = None
+        if obj.product and obj.product.image:
+            img = obj.product.image
+        elif obj.set_menu and obj.set_menu.image:
+            img = obj.set_menu.image
+        if not img:
+            return None
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(img.url)
+        return img.url
 
 
 class OrderReadSerializer(serializers.ModelSerializer):

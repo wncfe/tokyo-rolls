@@ -62,6 +62,70 @@ export function getEstimatedMinutes(order: OrderDetail, deliveryTimeMin: number,
   return Math.round(base * factor);
 }
 
+/** Динамический единый цвет бара на основе прогресса (0→100%). */
+export function getDynamicColor(progress: number): string {
+  const p = Math.min(100, Math.max(0, progress)) / 100;
+  // 0% → red (#E11D48), 50% → amber (#F59E0B), 100% → green (#10B981)
+  if (p <= 0.5) {
+    const t = p * 2;
+    const r = Math.round(225 + (245 - 225) * t);
+    const g = Math.round(29 + (158 - 29) * t);
+    const b = Math.round(72 + (11 - 72) * t);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+  const t = (p - 0.5) * 2;
+  const r = Math.round(245 + (16 - 245) * t);
+  const g = Math.round(158 + (185 - 158) * t);
+  const b = Math.round(11 + (129 - 11) * t);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/** Построить шаги таймлайна для прогресс-бара. */
+export function buildTimeline(order: OrderDetail): TimelineStep[] {
+  const isDelivery = order.order_type === 'delivery';
+  const statuses = isDelivery
+    ? ['pending', 'confirmed', 'preparing', 'delivering', 'delivered']
+    : ['pending', 'confirmed', 'preparing', 'ready'];
+
+  const labels: Record<string, string> = {
+    pending: 'Принят',
+    confirmed: 'Оплачен',
+    preparing: 'Готовится',
+    delivering: 'В пути',
+    delivered: 'Доставлен',
+    ready: 'Готов',
+  };
+
+  const icons: Record<string, string> = {
+    pending: 'ClipboardList',
+    confirmed: 'CreditCard',
+    preparing: 'ChefHat',
+    delivering: 'Truck',
+    delivered: 'CheckCircle2',
+    ready: 'Package',
+  };
+
+  const currentIdx = statuses.indexOf(order.status);
+
+  if (order.status === 'cancelled') {
+    return statuses.map((key) => ({
+      key,
+      label: labels[key] || key,
+      iconName: icons[key] || 'CircleDot',
+      isCompleted: false,
+      isCurrent: false,
+    }));
+  }
+
+  return statuses.map((key, idx) => ({
+    key,
+    label: labels[key] || key,
+    iconName: icons[key] || 'CircleDot',
+    isCompleted: idx < currentIdx,
+    isCurrent: idx === currentIdx,
+  }));
+}
+
 /** Прогресс заказа от 0 до 100 процентов. */
 export function getOrderProgress(status: string): number {
   const map: Record<string, number> = {
@@ -77,53 +141,6 @@ export function getOrderProgress(status: string): number {
     'cancelled': 0,
   };
   return map[status] ?? 0;
-}
-
-/** Построить цепочку таймлайна на основе статуса и типа заказа. */
-function buildTimeline(order: OrderDetail): TimelineStep[] {
-  const isDelivery = order.order_type === 'delivery';
-  const statuses = isDelivery
-    ? ['pending', 'confirmed', 'preparing', 'delivering', 'delivered']
-    : ['pending', 'confirmed', 'preparing', 'ready'];
-
-  const labels: Record<string, string> = {
-    pending: 'Принят',
-    confirmed: 'Оплачен',
-    preparing: 'Готовится',
-    delivering: 'В доставке',
-    delivered: 'Доставлен',
-    ready: 'Можно забирать',
-  };
-
-  const icons: Record<string, string> = {
-    pending: '📋',
-    confirmed: '💳',
-    preparing: '👨‍🍳',
-    delivering: '🚗',
-    delivered: '✅',
-    ready: '🥡',
-  };
-
-  const currentIdx = statuses.indexOf(order.status);
-
-  // Если заказ отменён — все шаги будущие кроме первого
-  if (order.status === 'cancelled') {
-    return statuses.map((key, idx) => ({
-      key,
-      label: labels[key] || key,
-      icon: icons[key] || '○',
-      isCompleted: false,
-      isCurrent: false,
-    }));
-  }
-
-  return statuses.map((key, idx) => ({
-    key,
-    label: labels[key] || key,
-    icon: icons[key] || '○',
-    isCompleted: idx < currentIdx,
-    isCurrent: idx === currentIdx,
-  }));
 }
 
 // ─── Hook ───────────────────────────────────────────────────
