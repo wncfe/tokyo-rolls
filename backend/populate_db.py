@@ -9,7 +9,10 @@ import uuid
 from io import BytesIO
 
 import django
+from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
+from django.utils import timezone
+from datetime import timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -17,8 +20,8 @@ django.setup()
 
 from api.models import (
     Address, Allergen, Category, Ingredient, Order, OrderItem, Product,
-    ProductIngredient, PromoCode, Set, SetIngredient, SetItem, SubCategory,
-    UserProfile,
+    ProductIngredient, PromoCode, RestaurantSettings, Set, SetIngredient,
+    SetItem, SubCategory, UserProfile,
 )
 
 
@@ -677,7 +680,6 @@ RestaurantSettings.objects.create(
 print('✅ Настройки ресторана: 11:00–23:00, мин. заказ 700₽, доставка от 1500₽')
 
 # ── Пользователи ──
-from django.contrib.auth.models import User
 
 print('\n── ПОЛЬЗОВАТЕЛИ ──')
 
@@ -712,8 +714,6 @@ Address.objects.create(user=user_a,
 print('✅ Адрес A2: г Пермь, ул Сибирская, д 15')
 
 # ── Промокоды ──
-from django.utils import timezone
-from datetime import timedelta
 
 print('\n── ПРОМОКОДЫ ──')
 
