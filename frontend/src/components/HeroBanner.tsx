@@ -40,7 +40,7 @@ export default function HeroBanner({ isOpen, settings }: HeroBannerProps) {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
                 <div className="flex flex-col text-left">
-                  <span className="text-emerald-800 font-bold text-xs leading-none">● Открыто. Принимаем заказы</span>
+                  <span className="text-emerald-800 font-bold text-xs leading-none">Открыто. Принимаем заказы</span>
                   <span className="text-[9.5px] text-emerald-650 mt-0.5 font-light">С {settings.opening_hour}:00 до {settings.closing_hour}:00</span>
                 </div>
               </div>
@@ -49,7 +49,7 @@ export default function HeroBanner({ isOpen, settings }: HeroBannerProps) {
                 <span className="w-2.5 h-2.5 rounded-full bg-orange-400 shrink-0" />
                 <Clock className="w-4 h-4 text-orange-500 shrink-0" />
                 <div className="flex flex-col text-left">
-                  <span className="text-orange-900 font-bold text-xs leading-none">○ Сейчас закрыто</span>
+                  <span className="text-orange-900 font-bold text-xs leading-none">Сейчас закрыто</span>
                   <span className="text-[9.5px] text-orange-650 mt-0.5 font-light">Откроемся в {settings.opening_hour}:00</span>
                 </div>
               </div>

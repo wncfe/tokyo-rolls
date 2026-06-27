@@ -176,6 +176,8 @@ else:
         'http://127.0.0.1:3000',
         'http://localhost:5173',
         'http://127.0.0.1:5173',
+        'http://localhost:3001',  # dashboard dev
+        'http://127.0.0.1:3001',
     ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -190,7 +192,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '60/minute',
-        'auth': '5/minute',
+        'auth': '60/minute',
     },
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',

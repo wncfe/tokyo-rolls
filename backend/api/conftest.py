@@ -25,6 +25,7 @@ from api.factories import (
     PromoCodeFactory,
     RestaurantSettingsFactory,
     SetFactory,
+    OperationLogFactory,
     SetItemFactory,
     SubCategoryFactory,
     UserFactory,
@@ -35,6 +36,7 @@ from api.models import (
     Allergen,
     Category,
     Ingredient,
+    OperationLog,
     Order,
     OrderItem,
     Product,
@@ -240,3 +242,26 @@ def phone_data() -> dict:
 @pytest.fixture
 def code_data(phone_data: dict) -> dict:
     return {**phone_data, 'code': '1234'}
+
+
+# ─── Staff / Dashboard ───
+
+
+@pytest.fixture
+def staff_user() -> User:
+    """Create a staff user for dashboard tests."""
+    return UserFactory(is_staff=True, password='admin123')
+
+
+@pytest.fixture
+def staff_client(api_client: APIClient, staff_user: User) -> APIClient:
+    """Authenticated API client as a staff user."""
+    refresh = RefreshToken.for_user(staff_user)
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+    return api_client
+
+
+@pytest.fixture
+def operation_log(staff_user: User) -> OperationLog:
+    """A single operation log entry."""
+    return OperationLogFactory(user=staff_user)

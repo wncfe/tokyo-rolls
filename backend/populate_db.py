@@ -714,6 +714,35 @@ user_c.set_unusable_password(); user_c.save()
 UserProfile.objects.create(user=user_c, phone='+79993333333')
 print('✅ Юзер C: +7 (999) 333-33-33 — для auth-тестов')
 
+# ── Staff-пользователи для дашборда ──
+
+print('\n── STAFF ПОЛЬЗОВАТЕЛИ ──')
+
+staff_manager = User.objects.create_user(
+    username='+79120000001',
+    password='admin123',
+    is_staff=True,
+)
+UserProfile.objects.create(user=staff_manager, phone='+79120000001', role='manager')
+print('✅ Менеджер: +7 (912) 000-00-01 / admin123 (is_staff, role=manager)')
+
+staff_cashier = User.objects.create_user(
+    username='+79120000002',
+    password='cashier123',
+    is_staff=True,
+)
+UserProfile.objects.create(user=staff_cashier, phone='+79120000002', role='cashier')
+print('✅ Кассир: +7 (912) 000-00-02 / cashier123 (is_staff, role=cashier)')
+
+# ── Admin (superuser) для дашборда ──
+admin_user = User.objects.create_superuser(
+    username='admin',
+    password='admin123',
+    email='admin@tokyo-rolls.ru',
+)
+UserProfile.objects.create(user=admin_user, phone='', role='manager')
+print('✅ Админ: admin / admin123 (is_superuser, is_staff)')
+
 # ── Адреса для Юзера A ──
 
 print('\n── АДРЕСА ──')

@@ -17,6 +17,7 @@ from api.models import (
     Allergen,
     Category,
     Ingredient,
+    OperationLog,
     Order,
     OrderItem,
     Product,
@@ -302,3 +303,14 @@ class RestaurantSettingsFactory(DjangoModelFactory):
     delivery_time_max = 60
     restaurant_address = 'г Пермь, ул Ленина, д 88'
     pickup_discount_percent = 10
+
+
+class OperationLogFactory(DjangoModelFactory):
+    class Meta:
+        model = 'api.OperationLog'
+
+    user = SubFactory(UserFactory)
+    user_role = 'manager'
+    action = Sequence(lambda n: f'Действие {n}')
+    type = 'system'
+    target_id = ''

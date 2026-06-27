@@ -1,0 +1,6 @@
+{
+  "name": "Sushi Delivery Admin Panel",
+  "description": "A streamlined, high-contrast dashboard for managing sushi restaurant delivery orders, kitchen queue, and menu items.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

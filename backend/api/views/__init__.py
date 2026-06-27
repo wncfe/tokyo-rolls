@@ -41,6 +41,19 @@ from .misc import (
     validate_promo,
     dadata_suggest,
 )
+from .dashboard import (
+    admin_order_list,
+    admin_order_detail,
+    admin_order_update_status,
+    admin_order_cancel,
+    admin_dashboard_stats,
+    admin_log_list,
+    admin_log_clear,
+    admin_toggle_availability,
+    admin_profile,
+    AdminProductViewSet,
+    AdminSetViewSet,
+)
 
 __all__ = [
     # catalog
@@ -69,4 +82,16 @@ __all__ = [
     'restaurant_settings',
     'validate_promo',
     'dadata_suggest',
+    # dashboard
+    'admin_order_list',
+    'admin_order_detail',
+    'admin_order_update_status',
+    'admin_order_cancel',
+    'admin_dashboard_stats',
+    'admin_log_list',
+    'admin_log_clear',
+    'admin_toggle_availability',
+    'admin_profile',
+    'AdminProductViewSet',
+    'AdminSetViewSet',
 ]
