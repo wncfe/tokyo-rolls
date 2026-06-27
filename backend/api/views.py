@@ -12,8 +12,6 @@ from django.http import JsonResponse
 from django.db.models import Prefetch
 from django.utils import timezone
 from django.contrib.auth.models import User
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 from rest_framework import viewsets, filters, generics, permissions, status
 from django.views.decorators.cache import cache_control
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
@@ -453,8 +451,7 @@ def dadata_suggest(request):
 
 # ─── YooKassa Payment Webhook ───
 
-@require_POST
-@csrf_exempt
+@api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def payment_webhook(request):
     """
