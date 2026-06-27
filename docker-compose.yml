@@ -81,12 +81,12 @@ services:
       backend:
         condition: service_started
     ports:
-      - "3001:3001"
+      - "3001:80"
     networks:
       - app-network
     # Для продакшена VITE_API_URL не нужен — статика через serve, API через nginx
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3001/"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -20,13 +20,14 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:22-alpine AS prod
-WORKDIR /app
-RUN addgroup --system --gid 1001 nodejs && \
+FROM nginx:alpine AS prod
+RUN addgroup --system --gid 1001 appuser && \
     adduser --system --uid 1001 appuser
-RUN npm install -g serve
-COPY --from=build /app/dist ./dist
-RUN chown -R appuser:nodejs /app/dist
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+RUN chown -R appuser:appuser /usr/share/nginx/html && \
+    touch /var/run/nginx.pid && \
+    chown appuser:appuser /var/run/nginx.pid /var/log/nginx /var/cache/nginx 2>/dev/null || true
 USER appuser
-EXPOSE 3001
-CMD ["serve", "dist", "-l", "3001", "--no-clipboard"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
