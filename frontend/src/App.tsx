@@ -85,22 +85,11 @@ export default function App() {
     setIsTrackerOpen(true);
   }, [refreshActiveOrder]);
 
-  // ── Reorder after cancellation: restore cart from snapshot ──
+  // ── Reorder after cancellation: close tracker → open cart ──
   const handleReorder = useCallback(() => {
-    // Restore last cart snapshot if available
-    try {
-      const snapshot = localStorage.getItem('tokyo-rolls-last-cart');
-      if (snapshot) {
-        localStorage.setItem('tokyo-rolls-cart', snapshot);
-        localStorage.removeItem('tokyo-rolls-last-cart');
-        // Reload to reinitialize cart from localStorage
-        window.location.reload();
-        return;
-      }
-    } catch { /* ignore */ }
-    // Fallback: close tracker → cart button appears (activeOrder nullified in onClose)
     setIsTrackerOpen(false);
     setActiveOrder(null);
+    setIsCartOpen(true);
   }, []);
 
   // Auth handlers (passwordless)

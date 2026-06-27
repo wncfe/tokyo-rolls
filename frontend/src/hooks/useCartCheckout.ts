@@ -51,11 +51,6 @@ export function useCartCheckout(isOpen: boolean) {
     setOrderError(null);
     setIsSubmitting(true);
     try {
-      // Save cart snapshot before clearing — for potential restoration after cancellation
-      try {
-        localStorage.setItem('tokyo-rolls-last-cart', JSON.stringify(cart));
-      } catch { /* ignore storage errors */ }
-
       const items: CheckoutData['items'] = cart.map(item => {
         const product = item.product;
         if ('category' in product) {
