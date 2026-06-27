@@ -9,6 +9,7 @@ import MenuSections from "./components/MenuSections";
 import OrderTrackerDrawer from "./components/OrderTrackerDrawer";
 import OrderTrackerButton from "./components/OrderTrackerButton";
 import ErrorBoundary from "./components/ErrorBoundary";
+import LogoutConfirmModal from "./components/LogoutConfirmModal";
 import { MenuItem } from "./types";
 import { useCart } from "./hooks/useCart";
 import { useAuth } from "./hooks/useAuth";
@@ -36,6 +37,7 @@ export default function App() {
 
   // UI state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isTrackerOpen, setIsTrackerOpen] = useState(false);
@@ -97,6 +99,16 @@ export default function App() {
   }, [activeOrder?.id]);
 
   // Auth handlers (passwordless)
+  // Logout confirmation
+  const handleLogoutClick = () => {
+    setIsLogoutConfirmOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    logout();
+    setIsLogoutConfirmOpen(false);
+  };
+
   const handleRequestCode = async (phone: string) => {
     await loginWithPhone(phone);
   };
@@ -113,7 +125,7 @@ export default function App() {
       <Header
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
-        onLogout={logout}
+        onLogout={handleLogoutClick}
         orderType={orderType}
         onOrderTypeChange={setOrderType}
       />
@@ -225,6 +237,11 @@ export default function App() {
         cartQuantity={selectedProduct ? getQuantity(selectedProduct.id) : 0}
         onAddToCart={() => selectedProduct && addToCart(selectedProduct)}
         onRemoveFromCart={() => selectedProduct && removeFromCart(selectedProduct.id)}
+      />
+      <LogoutConfirmModal
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleLogoutConfirm}
       />
       <AuthModal
         isOpen={isAuthModalOpen}
