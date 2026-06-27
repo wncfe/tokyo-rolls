@@ -14,8 +14,8 @@ class _BaseAuthThrottle(AnonRateThrottle):
 
 
 class AuthRequestCodeThrottle(_BaseAuthThrottle):
-    """3 requests per minute per IP for request-code."""
-    rate = '3/minute'
+    """10 requests per minute per IP for request-code."""
+    rate = '10/minute'
 
 
 class AuthVerifyCodeThrottle(_BaseAuthThrottle):
