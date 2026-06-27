@@ -75,12 +75,25 @@ export default function AuthModal({ isOpen, onClose, onRequestCode, onVerifyCode
     }
   };
 
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   const handleResend = async () => {
+    if (resendCooldown > 0) return;
     setError(null);
     setCode('');
     setLoading(true);
     try {
       await onRequestCode(phone.trim());
+      setResendCooldown(30);
+      const timer = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch (err: any) {
       setError(err.message || 'Ошибка отправки кода');
     } finally {
@@ -196,10 +209,12 @@ export default function AuthModal({ isOpen, onClose, onRequestCode, onVerifyCode
             <button
               type="button"
               onClick={handleResend}
-              disabled={loading}
+              disabled={loading || resendCooldown > 0}
               className="text-center text-xs text-slate-400 hover:text-[#E11D48] transition-colors cursor-pointer disabled:opacity-50"
             >
-              Отправить код повторно
+              {resendCooldown > 0
+                ? `Повторно через ${resendCooldown} с`
+                : 'Отправить код повторно'}
             </button>
           </form>
         )}

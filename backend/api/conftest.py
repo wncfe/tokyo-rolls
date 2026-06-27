@@ -4,6 +4,8 @@ import os
 
 # In tests, always run in DEBUG mode (auto-generates secret key)
 os.environ.setdefault('DJANGO_DEBUG', 'True')
+# Disable throttling in tests — auth endpoints have rate limits
+os.environ['DISABLE_THROTTLING'] = 'True'
 
 from collections.abc import Callable
 

@@ -15,9 +15,10 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import viewsets, filters, generics, permissions, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from .throttles import AuthRequestCodeThrottle, AuthVerifyCodeThrottle
 from .models import Address, Category, SubCategory, Product, Set, UserProfile, Order, RestaurantSettings
 from .serializers import (
     AddressSerializer, CategorySerializer, SubCategorySerializer, ProductSerializer, SetSerializer,
@@ -168,6 +169,7 @@ def _normalize_phone(phone: str) -> str:
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRequestCodeThrottle])
 def request_code(request):
     """Запросить код подтверждения по номеру телефона. Код всегда 1234 (заглушка)."""
     serializer = PhoneRequestSerializer(data=request.data)
@@ -196,6 +198,7 @@ def request_code(request):
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([AuthVerifyCodeThrottle])
 def verify_code(request):
     """Подтвердить код и получить JWT-токены. Если пользователь новый — авто-создаётся."""
     serializer = CodeVerifySerializer(data=request.data)
@@ -642,13 +645,9 @@ def order_detail(request, order_id):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Авто-отмена при истечении таймера (дублирует логику payment_status)
-    if order.status == Order.Status.AWAITING_PAYMENT:
-        elapsed = timezone.now() - order.created_at
-        if elapsed > timedelta(minutes=10):
-            order.status = Order.Status.CANCELLED
-            order.save(update_fields=['status'])
-            return Response(OrderReadSerializer(order).data)
+    # Заказ не оплачен дольше 10 мин — не меняем статус (это делает
+    # management command cancel_expired_orders), только сообщаем.
+    # GET-эндпоинт не должен иметь деструктивных сайд-эффектов.
 
     # Fallback: если вебхук ещё не пришёл — проверяем ЮKassa напрямую.
     # Только для пред-платёжных статусов! Не трогаем delivering/delivered/completed.

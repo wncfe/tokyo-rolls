@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'api.apps.ApiConfig',
 ]
@@ -164,6 +165,13 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '60/minute',
+        'auth': '5/minute',
+    },
 }
 
 # Production security settings
@@ -182,14 +190,11 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
+    'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 # ─── YooKassa (ЮKassa) — online payments ───
 YOOKASSA_SHOP_ID = os.environ.get('YOOKASSA_SHOP_ID', '')
 YOOKASSA_SECRET_KEY = os.environ.get('YOOKASSA_SECRET_KEY', '')
-YOOKASSA_RETURN_URL = os.environ.get(
-    'YOOKASSA_RETURN_URL',
-    'http://localhost:3000/?payment_return=1',
-)
+YOOKASSA_RETURN_URL = os.environ.get('YOOKASSA_RETURN_URL', '')

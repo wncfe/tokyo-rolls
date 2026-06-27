@@ -66,7 +66,7 @@ export default function Header({ user, onOpenAuth, onLogout, orderType, onOrderT
           {user ? (
             <div className="flex items-center gap-2">
               <span className="hidden sm:inline text-sm font-medium text-slate-700">
-                {user.phone}
+                {user.phone.slice(0, 6)}**-**{user.phone.slice(-2)}
               </span>
               <button
                 onClick={onLogout}
