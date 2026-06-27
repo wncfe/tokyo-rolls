@@ -3,15 +3,13 @@
 # Tokyo Rolls — Backend Entrypoint
 # Runs migrations, collectstatic, populates DB if empty, starts Gunicorn
 # ==============================================================
+set -euo pipefail
 
 echo "→ Running migrations..."
-python manage.py migrate --noinput || {
-    echo "⚠️  Migrations failed!"
-    exit 1
-}
+python manage.py migrate --noinput
 
 echo "→ Collecting static files..."
-python manage.py collectstatic --noinput --clear || echo "⚠️  collectstatic had issues (non-fatal)"
+python manage.py collectstatic --noinput --clear
 
 echo "→ Checking if database needs seeding..."
 DB_NEEDS_SEED=0
@@ -30,15 +28,17 @@ exit(0 if count == 0 else 1)
 
 if [ "$DB_NEEDS_SEED" -eq 0 ]; then
     echo "→ Database empty — populating sample data..."
-    python populate_db.py || echo "⚠️  Populate failed (non-fatal, continuing...)"
+    python populate_db.py
 fi
 
 echo "→ Starting Gunicorn..."
 exec gunicorn config.wsgi:application \
     --bind 0.0.0.0:8000 \
-    --workers 2 \
+    --workers ${WEB_CONCURRENCY:-2} \
     --threads 2 \
     --timeout 120 \
+    --max-requests 1000 \
+    --max-requests-jitter 50 \
     --access-logfile - \
     --error-logfile - \
     --log-level info

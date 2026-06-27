@@ -22,8 +22,12 @@ services:
       - tokyo-static:/app/staticfiles
       # Delivery zones GeoJSON (from project root)
       - ./delivery_zones.geojson:/app/delivery_zones.geojson:ro
-    ports:
-      - "8000:8000"
+    networks:
+      - app-network
+    # Backend accessible only through Nginx (port removed for production)
+    # For local dev override, use docker-compose.override.yml with:
+    #   ports:
+    #     - "8000:8000"
 
   frontend:
     build:
@@ -34,14 +38,21 @@ services:
     container_name: tokyo-frontend
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     ports:
       - "80:80"
     volumes:
       - tokyo-media:/usr/share/nginx/html/media:ro
       - tokyo-static:/usr/share/nginx/html/static:ro
+    networks:
+      - app-network
 
 volumes:
   tokyo-db:
   tokyo-media:
   tokyo-static:
+
+networks:
+  app-network:
+    driver: bridge

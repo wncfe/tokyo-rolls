@@ -27,7 +27,7 @@ from api.models import (
 
 
 def download_image(url):
-    """Скачать изображение по URL и вернуть как ImageFile (или None при ошибке)."""
+    """Скачать изображение по URL и вернуть как ImageFile (или заглушку при ошибке)."""
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -36,19 +36,34 @@ def download_image(url):
         return ImageFile(BytesIO(data), name=name)
     except Exception as e:
         print(f'  ⚠️  Не удалось скачать {url}: {e}')
-        return None
+        # Fallback: generate a tiny grey placeholder PNG (1x1 pixel)
+        placeholder = BytesIO(
+            b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01'
+            b'\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00'
+            b'\x00\x00\x0cIDATx\x9cc\xf8\xcf\xc0\x00\x00\x01\x01\x00'
+            b'\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82'
+        )
+        name = f'placeholder_{uuid.uuid4().hex[:8]}.png'
+        return ImageFile(placeholder, name=name)
 
 
-# ── Очистить существующие данные ──
-SetItem.objects.all().delete()
-SetIngredient.objects.all().delete()
-ProductIngredient.objects.all().delete()
-OrderItem.objects.all().delete()
-Order.objects.all().delete()
-Set.objects.all().delete()
-Product.objects.all().delete()
-SubCategory.objects.all().delete()
-Category.objects.all().delete()
+# ── Защита: не удалять данные без явного разрешения ──
+if os.environ.get('FORCE_RESEED', '0') != '1' and Category.objects.exists():
+    print('⚠️  База уже содержит данные (есть категории).')
+    print('   Установите FORCE_RESEED=1 для полной перезаписи данных.')
+    sys.exit(0)
+# ── Очистить существующие данные (атомарно) ──
+from django.db import transaction
+with transaction.atomic():
+    SetItem.objects.all().delete()
+    SetIngredient.objects.all().delete()
+    ProductIngredient.objects.all().delete()
+    OrderItem.objects.all().delete()
+    Order.objects.all().delete()
+    Set.objects.all().delete()
+    Product.objects.all().delete()
+    SubCategory.objects.all().delete()
+    Category.objects.all().delete()
 
 # ═════════════════════════════════════════
 #  КАТЕГОРИИ
@@ -758,7 +773,7 @@ print(f'   Сетов: {Set.objects.count()}')
 print(f'   Позиций в сетах: {SetItem.objects.count()}')
 print(f'   Ингредиентов: {Ingredient.objects.count()}')
 print(f'   Аллергенов: {Allergen.objects.count()}')
-print(f'   Пользователей: {User.objects.exclude(username__startswith="anon").count() - 1}')
+print(f'   Пользователей: {User.objects.filter(username__startswith="+7").count()}')
 print(f'   Адресов: {Address.objects.count()}')
 print(f'   Промокодов: {PromoCode.objects.count()}')
 print(f'   Настройки ресторана: есть')
