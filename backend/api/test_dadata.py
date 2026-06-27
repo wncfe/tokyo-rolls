@@ -87,7 +87,7 @@ class TestDaDataQcGeoFilter:
         }
 
     @pytest.mark.parametrize('qc_geo,label,should_pass', QC_FIXTURES)
-    @patch('api.views.requests.post')
+    @patch('api.views.misc.requests.post')
     def test_qc_geo_filtering(self, mock_post, api_client, qc_geo, label, should_pass):
         """Suggestions with qc_geo={qc_geo} ({label}) should {'pass' if should_pass else 'be filtered'}."""
         mock_post.return_value.status_code = status.HTTP_200_OK
@@ -103,7 +103,7 @@ class TestDaDataQcGeoFilter:
         else:
             assert len(response.json()) == 0, f'qc_geo={qc_geo} should be FILTERED'
 
-    @patch('api.views.requests.post')
+    @patch('api.views.misc.requests.post')
     def test_mixed_qc_geo(self, mock_post, api_client):
         """Only good-quality suggestions survive when mixed."""
         mock_post.return_value.status_code = status.HTTP_200_OK
@@ -119,7 +119,7 @@ class TestDaDataQcGeoFilter:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.json()) == 3
 
-    @patch('api.views.requests.post')
+    @patch('api.views.misc.requests.post')
     def test_to_bound_house_in_request_body(self, mock_post, api_client):
         """Verify to_bound = house is sent to DaData (from_bound is not set)."""
         mock_post.return_value.status_code = status.HTTP_200_OK
