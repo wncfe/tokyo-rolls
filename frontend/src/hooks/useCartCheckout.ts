@@ -80,8 +80,8 @@ export function useCartCheckout(isOpen: boolean) {
 
       // Если ЮKassa вернула payment_url — редиректим пользователя на оплату
       if (result.payment_url) {
-        // Очищаем корзину до редиректа на ЮKassa
-        onClearCart();
+        // Сохраняем ID заказа, корзину очистим только после подтверждения оплаты
+        localStorage.setItem('tokyo-rolls-pending-order-id', String(result.id));
         window.location.href = result.payment_url;
         return;
       }

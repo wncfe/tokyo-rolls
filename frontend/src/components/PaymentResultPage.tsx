@@ -71,6 +71,9 @@ export default function PaymentResultPage({ orderId, onClose }: PaymentResultPag
             </p>
             <button
               onClick={() => {
+                // Clean cart — payment confirmed
+                localStorage.removeItem('tokyo-rolls-cart');
+                localStorage.removeItem('tokyo-rolls-pending-order-id');
                 // Clean query params from URL without reload
                 window.history.replaceState({}, '', '/');
                 onClose();

@@ -292,7 +292,7 @@ export async function checkDeliveryZone(addressId: number): Promise<DeliveryZone
 /** Получить статус оплаты заказа (опрос после возврата с ЮKassa). */
 export async function fetchPaymentStatus(orderId: number): Promise<PaymentStatusResult> {
   const response = await fetch(`${API_BASE_URL}/payment/status/${orderId}/`, {
-    // bust browser cache — status changes between polls
+    headers: authHeaders(),
     cache: 'no-store',
   });
   return handleResponse(response);
@@ -313,6 +313,7 @@ export async function fetchActiveOrder(): Promise<OrderDetail | null> {
 /** Получить полную информацию о заказе (для трекера). */
 export async function fetchOrderDetail(orderId: number): Promise<OrderDetail> {
   const response = await fetch(`${API_BASE_URL}/orders/${orderId}/`, {
+    headers: authHeaders(),
     cache: 'no-store',
   });
   return handleResponse(response);

@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # In DEBUG mode a random key is generated automatically (sessions invalidate on restart).
 # In PRODUCTION you MUST set DJANGO_SECRET_KEY or the server will refuse to start.
 _secret = os.environ.get('DJANGO_SECRET_KEY', '')
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
 if not _secret:
     if DEBUG:
@@ -187,7 +187,7 @@ SIMPLE_JWT = {
 }
 
 # ─── YooKassa (ЮKassa) — online payments ───
-YOOKASSA_SHOP_ID = os.environ.get('YOOKASSA_SHOP_ID', '1394980')
+YOOKASSA_SHOP_ID = os.environ.get('YOOKASSA_SHOP_ID', '')
 YOOKASSA_SECRET_KEY = os.environ.get('YOOKASSA_SECRET_KEY', '')
 YOOKASSA_RETURN_URL = os.environ.get(
     'YOOKASSA_RETURN_URL',

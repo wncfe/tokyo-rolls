@@ -1,8 +1,12 @@
+import hashlib
+import hmac
 import json
 import logging
 import os
 import re
 from datetime import timedelta
+
+from django.conf import settings
 import requests
 from django.http import JsonResponse
 from django.db.models import Prefetch
@@ -429,8 +433,9 @@ def dadata_suggest(request):
 
         return Response(suggestions, status=status.HTTP_200_OK)
     except requests.RequestException as e:
+        logger.warning('DaData request failed: %s', e)
         return Response(
-            {'detail': f'DaData request failed: {str(e)}'},
+            {'detail': 'Сервис подсказок временно недоступен.'},
             status=status.HTTP_502_BAD_GATEWAY,
         )
 
@@ -445,8 +450,30 @@ def payment_webhook(request):
     Webhook от ЮKassa — уведомление о смене статуса платежа.
     ЮKassa присылает POST с JSON-телом.
     """
+    # Проверка HMAC-подписи (если задан YOOKASSA_SECRET_KEY)
+    raw_body = request.body
+    if settings.YOOKASSA_SECRET_KEY:
+        signature = request.headers.get('Signature', '')
+        if not signature:
+            logger.warning('Webhook: missing HMAC signature header')
+            return Response(
+                {'detail': 'Missing signature'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        expected = hmac.new(
+            settings.YOOKASSA_SECRET_KEY.encode(),
+            raw_body,
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(expected, signature):
+            logger.warning('Webhook: invalid HMAC signature')
+            return Response(
+                {'detail': 'Invalid signature'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
     try:
-        body = json.loads(request.body)
+        body = json.loads(raw_body)
     except json.JSONDecodeError:
         return Response(
             {'detail': 'Invalid JSON'},
@@ -465,7 +492,7 @@ def payment_webhook(request):
             )
 
         try:
-            order = Order.objects.get(payment_id=payment_id)
+            order = Order.objects.select_for_update().get(payment_id=payment_id)
         except Order.DoesNotExist:
             logger.warning(
                 'Webhook: order not found for payment %s',
@@ -497,7 +524,7 @@ def payment_webhook(request):
 
 
 @api_view(['GET'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def payment_status(request, order_id):
     """Проверить статус оплаты заказа (опрос после возврата с ЮKassa).
 
@@ -510,6 +537,13 @@ def payment_status(request, order_id):
     try:
         order = Order.objects.get(pk=order_id)
     except Order.DoesNotExist:
+        return Response(
+            {'detail': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Проверка владельца: нельзя смотреть чужие заказы
+    if order.user_id is not None and order.user_id != request.user.id:
         return Response(
             {'detail': 'Order not found'},
             status=status.HTTP_404_NOT_FOUND,
@@ -581,7 +615,7 @@ def active_order(request):
 
 
 @api_view(['GET'])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def order_detail(request, order_id):
     """Получить полную информацию о заказе (для трекера).
 
@@ -591,6 +625,13 @@ def order_detail(request, order_id):
     try:
         order = Order.objects.get(pk=order_id)
     except Order.DoesNotExist:
+        return Response(
+            {'detail': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Проверка владельца: нельзя смотреть чужие заказы
+    if order.user_id is not None and order.user_id != request.user.id:
         return Response(
             {'detail': 'Order not found'},
             status=status.HTTP_404_NOT_FOUND,

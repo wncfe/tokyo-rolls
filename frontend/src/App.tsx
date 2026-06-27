@@ -52,8 +52,14 @@ export default function App() {
       fetchOrderDetail(Number(oid)).then((order) => {
         refreshActiveOrder();
         setIsTrackerOpen(true);
+        // Clear cart only if payment already confirmed
+        const paidStatuses = ['confirmed', 'preparing', 'ready', 'delivering', 'delivered', 'completed'];
+        if (paidStatuses.includes(order.status)) {
+          localStorage.removeItem('tokyo-rolls-cart');
+          localStorage.removeItem('tokyo-rolls-pending-order-id');
+        }
       }).catch(() => {
-        // silently ignore — order may not exist yet
+        // silently ignore — order may not exist yet, or user not authenticated
       });
     } else if (activeOrder) {
       // Auto-open tracker on page load if active order exists

@@ -1,5 +1,10 @@
 """Pytest fixtures for Tokyo Rolls API tests."""
 
+import os
+
+# In tests, always run in DEBUG mode (auto-generates secret key)
+os.environ.setdefault('DJANGO_DEBUG', 'True')
+
 from collections.abc import Callable
 
 import pytest
