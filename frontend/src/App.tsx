@@ -178,10 +178,11 @@ export default function App() {
           isOpen={isTrackerOpen}
           onClose={() => {
             setIsTrackerOpen(false);
+            // Для cancelled/completed не сбрасываем activeOrder —
+            // статус-бар остаётся, пока пользователь не нажмёт
+            // «Заказать снова». Для остальных статусов обновляем.
             const isFinished = activeOrder.status === 'cancelled' || activeOrder.status === 'completed';
-            if (isFinished) {
-              setActiveOrder(null);
-            } else {
+            if (!isFinished) {
               refreshActiveOrder();
             }
           }}
