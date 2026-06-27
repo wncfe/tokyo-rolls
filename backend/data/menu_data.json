@@ -1,0 +1,258 @@
+{
+  "categories": [
+    {"slug": "sets", "name": "Сеты", "subtitle": "ЛУЧШИЙ ВЫБОР ДЛЯ КОМПАНИИ", "sort_order": 1},
+    {"slug": "rolls", "name": "Роллы", "subtitle": "АВТОРСКИЕ РЕЦЕПТЫ ШЕФА", "sort_order": 2},
+    {"slug": "sushi", "name": "Суши и Гунканы", "subtitle": "СВЕЖАЯ КЛАССИКА С ОХЛАЖДЕННОЙ РЫБОЙ", "sort_order": 3},
+    {"slug": "pokesalads", "name": "Поке & Салаты", "subtitle": "СВЕЖЕСТЬ В КАЖДОМ КУСОЧКЕ", "sort_order": 4},
+    {"slug": "hot", "name": "Горячее", "subtitle": "СЫТНЫЕ РЕШЕНИЯ И ХРУСТЯЩАЯ СВЕЖЕСТЬ", "sort_order": 5},
+    {"slug": "desserts", "name": "Десерты", "subtitle": "СЛАДКИЕ ЗАВЕРШЕНИЯ", "sort_order": 6},
+    {"slug": "dop", "name": "Дополнительно", "subtitle": "НАПИТКИ, СОУСЫ И ПРОЧЕЕ", "sort_order": 7}
+  ],
+  "subcategories": [
+    {"slug": "firm", "name": "Большие роллы", "sort_order": 1},
+    {"slug": "baked", "name": "Запеченные роллы", "sort_order": 2},
+    {"slug": "free", "name": "Фри роллы", "sort_order": 3},
+    {"slug": "warm", "name": "Теплые и темпура роллы", "sort_order": 4},
+    {"slug": "classic", "name": "Классические роллы", "sort_order": 5}
+  ],
+  "ingredients": [
+    "Лосось", "Тунец", "Креветка", "Угорь", "Снежный краб", "Гребешок",
+    "Сливочный сыр", "Авокадо", "Огурец", "Рис", "Нори",
+    "Икра тобико", "Икра масаго", "Соевый соус", "Кунжут", "Кляр",
+    "Васаби", "Сакэ", "Майонез", "Лимон", "Копченая курица",
+    "Бекон", "Японский омлет", "Салат", "Томат", "Болгарский перец",
+    "Зеленый лук", "Копченый лосось", "Стружка тунца", "Соус спайси",
+    "Соус унаги", "Соус терияки", "Сухари", "Сыр гауда", "Соус цезарь",
+    "Соус манго-чили", "Соус ореховый", "Бобы", "Салат чука", "Кальмар"
+  ],
+  "allergens": [
+    "Рыба", "Моллюски/Ракообразные", "Кунжут", "Соя", "Глютен",
+    "Молочные продукты", "Яичные продукты", "Острое"
+  ],
+  "ingredient_allergens": {
+    "Лосось": ["Рыба"],
+    "Тунец": ["Рыба"],
+    "Угорь": ["Рыба"],
+    "Икра тобико": ["Рыба"],
+    "Икра масаго": ["Рыба"],
+    "Креветка": ["Моллюски/Ракообразные"],
+    "Снежный краб": ["Моллюски/Ракообразные"],
+    "Гребешок": ["Моллюски/Ракообразные"],
+    "Кальмар": ["Моллюски/Ракообразные"],
+    "Сливочный сыр": ["Молочные продукты"],
+    "Сыр гауда": ["Молочные продукты"],
+    "Соевый соус": ["Соя"],
+    "Кунжут": ["Кунжут"],
+    "Кляр": ["Глютен", "Яичные продукты"],
+    "Майонез": ["Яичные продукты"],
+    "Васаби": ["Острое"],
+    "Соус спайси": ["Острое"],
+    "Японский омлет": ["Яичные продукты"],
+    "Сухари": ["Глютен"]
+  },
+  "products": {
+    "rolls": {
+      "firm": [
+        {"slug": "bonito-grebeshok", "name": "Бонито с Гребешком", "desc": "Рис, Нори, Гребешок, Сыр, Авокадо, Стружка Тунца.", "price": 560, "weight": 280, "pieces": 8, "composition": ["Гребешок", "Сливочный сыр", "Авокадо", "Стружка тунца", "Рис", "Нори"]},
+        {"slug": "black-grebeshok", "name": "Блэк Ролл с Гребешком", "desc": "Рис, Нори, Гребешок, Сыр, Авокадо, Икра Масаго.", "price": 640, "weight": 280, "pieces": 8, "composition": ["Гребешок", "Сливочный сыр", "Авокадо", "Икра масаго", "Рис", "Нори"]},
+        {"slug": "fresh-grebeshok", "name": "Фреш Ролл с Гребешком", "desc": "Рис, Нори, Снежный Краб, Огурец, Гребешок, Белый Кунжут, Соус Масаго.", "price": 740, "weight": 280, "pieces": 8, "composition": ["Гребешок", "Снежный краб", "Огурец", "Кунжут", "Икра масаго", "Рис", "Нори"]},
+        {"slug": "philadelphia-grebeshok", "name": "Филадельфия с Гребешком", "desc": "Рис, Нори, Сыр, Лосось, Гребешок, Авокадо.", "price": 895, "weight": 300, "pieces": 8, "composition": ["Лосось", "Гребешок", "Сливочный сыр", "Авокадо", "Рис", "Нори"]},
+        {"slug": "goa", "name": "Гоа", "desc": "Рис, Нори, Сыр, Копченая Курица, Зеленый Лук.", "price": 390, "weight": 260, "pieces": 8, "composition": ["Копченая курица", "Сливочный сыр", "Зеленый лук", "Рис", "Нори"]},
+        {"slug": "alyaska-firm", "name": "Аляска", "desc": "Рис, Нори, Сыр, Копченый Лосось, Зеленый Лук.", "price": 580, "weight": 270, "pieces": 8, "composition": ["Копченый лосось", "Сливочный сыр", "Зеленый лук", "Рис", "Нори"]},
+        {"slug": "nebraska", "name": "Небраска", "desc": "Рис, Нори, Сыр, Снежный Краб, Огурец, Японский Омлет.", "price": 390, "weight": 260, "pieces": 8, "composition": ["Снежный краб", "Сливочный сыр", "Огурец", "Японский омлет", "Рис", "Нори"]},
+        {"slug": "nezhnyy-krevetka", "name": "Нежный с Креветкой", "desc": "Рис, Нори, Сыр, Креветка, Икра Масаго.", "price": 520, "weight": 260, "pieces": 8, "composition": ["Креветка", "Сливочный сыр", "Икра масаго", "Рис", "Нори"]},
+        {"slug": "nezhnyy-snezhnyy-krab", "name": "Нежный со Снежным Крабом", "desc": "Рис, Нори, Сыр, Снежный краб, Икра Масаго.", "price": 390, "weight": 260, "pieces": 8, "composition": ["Снежный краб", "Сливочный сыр", "Икра масаго", "Рис", "Нори"]},
+        {"slug": "philadelphia-omlet", "name": "Филадельфия Японский Омлет", "desc": "Рис, Нори, Японский омлет, Авокадо, Сыр.", "price": 420, "weight": 260, "pieces": 8, "composition": ["Японский омлет", "Сливочный сыр", "Авокадо", "Рис", "Нори"]}
+      ],
+      "baked": [
+        {"slug": "goryachiy-grebeshok", "name": "Горячий с Гребешком", "desc": "Рис, Нори, Сыр, Огурец, Гребешок, Сыр Гауда, Майонез.", "price": 630, "weight": 280, "pieces": 8, "composition": ["Гребешок", "Сливочный сыр", "Сыр гауда", "Огурец", "Майонез", "Рис", "Нори"]},
+        {"slug": "zapech-bonito-krab", "name": "Запеченный Бонито со Снежным Крабом", "desc": "Рис, Нори, Сыр, Авокадо, Стружка Тунца, Снежный Краб.", "price": 440, "weight": 270, "pieces": 8, "composition": ["Снежный краб", "Сливочный сыр", "Авокадо", "Стружка тунца", "Рис", "Нори"]},
+        {"slug": "zapech-grebeshok-spaysi", "name": "Запеченный Гребешок Спайси", "desc": "Рис, Нори, Сыр, Огурец, Гребешок, Майонез, Икра масаго, Соус Спайси.", "price": 670, "weight": 280, "pieces": 8, "composition": ["Гребешок", "Сливочный сыр", "Огурец", "Майонез", "Икра масаго", "Соус спайси", "Рис", "Нори"]},
+        {"slug": "zapech-grebeshok", "name": "Запеченный с Гребешком", "desc": "Рис, Нори, Сыр, Огурец, Гребешок, Майонез, Икра масаго.", "price": 660, "weight": 280, "pieces": 8, "composition": ["Гребешок", "Сливочный сыр", "Огурец", "Майонез", "Икра масаго", "Рис", "Нори"]},
+        {"slug": "kioto-baked", "name": "Киото", "desc": "Рис, Нори, Сыр, Японский омлет, Огурец, Филе курицы обжаренное, Майонез, Кунжут, Соус терияки.", "price": 420, "weight": 270, "pieces": 8, "composition": ["Копченая курица", "Сливочный сыр", "Японский омлет", "Огурец", "Кунжут", "Майонез", "Соус терияки", "Рис", "Нори"]},
+        {"slug": "zapech-spaysi-krab", "name": "Запеченный Спайси Краб", "desc": "Рис, Нори, Сыр, Японский Омлет, Острый Снежный Краб, Икра масаго.", "price": 420, "weight": 270, "pieces": 8, "composition": ["Снежный краб", "Сливочный сыр", "Японский омлет", "Икра масаго", "Соус спайси", "Рис", "Нори"]},
+        {"slug": "zapech-chiken", "name": "Запеченный Чикен", "desc": "Рис, Нори, Сыр, Копченая курица, Томат, Майонез.", "price": 380, "weight": 260, "pieces": 8, "composition": ["Копченая курица", "Сливочный сыр", "Томат", "Майонез", "Рис", "Нори"]},
+        {"slug": "zapech-krab", "name": "Запеченный Краб", "desc": "Рис, Нори, Сыр, Снежный краб, Огурец, Майонез.", "price": 390, "weight": 260, "pieces": 8, "composition": ["Снежный краб", "Сливочный сыр", "Огурец", "Майонез", "Рис", "Нори"]},
+        {"slug": "zapech-kalmar", "name": "Запеченный с Кальмаром", "desc": "Рис, Нори, Сыр, Кальмар, Огурец, Майонез, Соус спайси.", "price": 420, "weight": 270, "pieces": 8, "composition": ["Кальмар", "Сливочный сыр", "Огурец", "Майонез", "Соус спайси", "Рис", "Нори"]},
+        {"slug": "cezar-zapech", "name": "Цезарь Запеченный", "desc": "Рис, Нори, Сыр, Копченая курица, Салат, Томат, Соус цезарь, Сухари.", "price": 430, "weight": 270, "pieces": 8, "composition": ["Копченая курица", "Сливочный сыр", "Салат", "Томат", "Соус цезарь", "Сухари", "Рис", "Нори"]}
+      ],
+      "free": [
+        {"slug": "grebeshok-tempura", "name": "Гребешок Темпура", "desc": "Рис, Нори, Сыр, Гребешок, Огурец, Кляр, Сухари.", "price": 560, "weight": 280, "pieces": 8, "composition": ["Гребешок", "Сливочный сыр", "Огурец", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "grebeshok-fri-unagi", "name": "Гребешок Фри с Соусом Унаги", "desc": "Рис, Нори, Гребешок, Кляр, Сухари, Соус Унаги.", "price": 390, "weight": 200, "pieces": 6, "composition": ["Гребешок", "Кляр", "Сухари", "Соус унаги", "Рис", "Нори"]},
+        {"slug": "losos-fri", "name": "Лосось Фри", "desc": "Рис, Нори, Лосось, Кляр, Сухари.", "price": 410, "weight": 200, "pieces": 6, "composition": ["Лосось", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "okinawa-fri", "name": "Окинава", "desc": "Рис, Нори, Курица, Салат, Томат, Кляр, Сухари.", "price": 410, "weight": 260, "pieces": 8, "composition": ["Копченая курица", "Салат", "Томат", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "chiken-fri", "name": "Чикен Фри", "desc": "Рис, Нори, Курица, Кляр, Сухари.", "price": 190, "weight": 180, "pieces": 6, "composition": ["Копченая курица", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "ebi-fri", "name": "Эби Фри", "desc": "Рис, Нори, Креветка, Кляр, Сухари.", "price": 320, "weight": 180, "pieces": 6, "composition": ["Креветка", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "spaysi-roll-fri", "name": "Спайси Ролл Фри", "desc": "Рис, Нори, Лосось терияки, Сыр, Перец, Соус спайси, Кляр, Сухари.", "price": 520, "weight": 280, "pieces": 8, "composition": ["Лосось", "Сливочный сыр", "Болгарский перец", "Соус спайси", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "bekon-tempura", "name": "Бекон Темпура", "desc": "Рис, Нори, Курица, Бекон, Томат, Кляр, Сухари.", "price": 410, "weight": 260, "pieces": 8, "composition": ["Копченая курица", "Бекон", "Томат", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "krabs-fri", "name": "Крабс Фри", "desc": "Рис, Нори, Снежный краб, Кляр, Сухари.", "price": 310, "weight": 180, "pieces": 6, "composition": ["Снежный краб", "Кляр", "Сухари", "Рис", "Нори"]}
+      ],
+      "warm": [
+        {"slug": "bonito-losos", "name": "Бонито с Лососем", "desc": "Рис, Нори, Лосось, Сыр, Авокадо, Стружка Тунца.", "price": 490, "weight": 270, "pieces": 8, "composition": ["Лосось", "Сливочный сыр", "Авокадо", "Стружка тунца", "Рис", "Нори"]},
+        {"slug": "bonito-krevetka", "name": "Бонито с Креветкой", "desc": "Рис, Нори, Креветка, Сыр, Авокадо, Стружка Тунца.", "price": 510, "weight": 270, "pieces": 8, "composition": ["Креветка", "Сливочный сыр", "Авокадо", "Стружка тунца", "Рис", "Нори"]},
+        {"slug": "bonito-ugor", "name": "Бонито с Угрем", "desc": "Рис, Нори, Угорь, Сыр, Авокадо, Стружка Тунца, Соус унаги.", "price": 690, "weight": 280, "pieces": 8, "composition": ["Угорь", "Сливочный сыр", "Авокадо", "Стружка тунца", "Соус унаги", "Рис", "Нори"]},
+        {"slug": "losos-tempura", "name": "Лосось Темпура", "desc": "Рис, Нори, Лосось, Сыр, Огурец, Кляр, Сухари.", "price": 480, "weight": 260, "pieces": 8, "composition": ["Лосось", "Сливочный сыр", "Огурец", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "ugor-tempura-roll", "name": "Угорь Темпура", "desc": "Рис, Нори, Угорь, Сыр, Огурец, Кляр, Сухари, Соус унаги.", "price": 590, "weight": 270, "pieces": 8, "composition": ["Угорь", "Сливочный сыр", "Огурец", "Кляр", "Сухари", "Соус унаги", "Рис", "Нори"]},
+        {"slug": "krevetka-tempura-roll", "name": "Креветка Темпура", "desc": "Рис, Нори, Креветка, Сыр, Огурец, Кляр, Сухари.", "price": 450, "weight": 250, "pieces": 8, "composition": ["Креветка", "Сливочный сыр", "Огурец", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "krabs-tempura", "name": "Крабс Темпура", "desc": "Рис, Нори, Снежный краб, Сыр, Огурец, Кляр, Сухари.", "price": 390, "weight": 250, "pieces": 8, "composition": ["Снежный краб", "Сливочный сыр", "Огурец", "Кляр", "Сухари", "Рис", "Нори"]},
+        {"slug": "snezhnyy-krab-str-tunca", "name": "Снежный Краб в Стружке Тунца", "desc": "Рис, Нори, Снежный краб, Сыр, Авокадо, Стружка Тунца.", "price": 480, "weight": 270, "pieces": 8, "composition": ["Снежный краб", "Сливочный сыр", "Авокадо", "Стружка тунца", "Рис", "Нори"]}
+      ],
+      "classic": [
+        {"slug": "fila-losos", "name": "Филадельфия Лосось", "desc": "Рис, Нори, Лосось, Сливочный сыр, Авокадо.", "price": 450, "weight": 250, "pieces": 8, "composition": ["Лосось", "Сливочный сыр", "Авокадо", "Рис", "Нори"]},
+        {"slug": "fila-krevetka", "name": "Филадельфия Креветка", "desc": "Рис, Нори, Креветка, Сливочный сыр, Авокадо.", "price": 470, "weight": 250, "pieces": 8, "composition": ["Креветка", "Сливочный сыр", "Авокадо", "Рис", "Нори"]},
+        {"slug": "fila-ugor", "name": "Филадельфия Угорь", "desc": "Рис, Нори, Угорь, Сливочный сыр, Авокадо, Соус унаги.", "price": 550, "weight": 260, "pieces": 8, "composition": ["Угорь", "Сливочный сыр", "Авокадо", "Соус унаги", "Рис", "Нори"]},
+        {"slug": "california", "name": "Калифорния", "desc": "Рис, Нори, Снежный краб, Авокадо, Огурец, Икра тобико.", "price": 380, "weight": 240, "pieces": 8, "composition": ["Снежный краб", "Авокадо", "Огурец", "Икра тобико", "Рис", "Нори"]},
+        {"slug": "fila-kopchenyy-losos", "name": "Филадельфия Копченый Лосось", "desc": "Рис, Нори, Копченый лосось, Сливочный сыр, Авокадо.", "price": 490, "weight": 250, "pieces": 8, "composition": ["Копченый лосось", "Сливочный сыр", "Авокадо", "Рис", "Нори"]},
+        {"slug": "roll-s-ogurcom", "name": "Ролл с Огурцом", "desc": "Рис, Нори, Огурец, Кунжут.", "price": 170, "weight": 140, "pieces": 6, "composition": ["Огурец", "Кунжут", "Рис", "Нори"]},
+        {"slug": "roll-s-omletom", "name": "Ролл с Японским Омлетом", "desc": "Рис, Нори, Японский омлет, Кунжут.", "price": 190, "weight": 150, "pieces": 6, "composition": ["Японский омлет", "Кунжут", "Рис", "Нори"]},
+        {"slug": "roll-s-filadelfiey", "name": "Ролл с Филадельфией", "desc": "Рис, Нори, Сливочный сыр, Огурец.", "price": 210, "weight": 160, "pieces": 6, "composition": ["Сливочный сыр", "Огурец", "Рис", "Нори"]},
+        {"slug": "roll-s-kopch-kuricey", "name": "Ролл с Копченой Курицей и Соусом Спайси", "desc": "Рис, Нори, Копченая курица, Сливочный сыр, Соус спайси.", "price": 230, "weight": 170, "pieces": 6, "composition": ["Копченая курица", "Сливочный сыр", "Соус спайси", "Рис", "Нори"]},
+        {"slug": "roll-s-avokado", "name": "Ролл с Авокадо", "desc": "Рис, Нори, Авокадо, Кунжут.", "price": 190, "weight": 150, "pieces": 6, "composition": ["Авокадо", "Кунжут", "Рис", "Нори"]}
+      ]
+    },
+    "sushi": [
+      {"slug": "nigiri-losos", "name": "Нигири с Лососем (2 шт)", "desc": "Свежий охлажденный лосось на рисе.", "price": 180, "weight": 80, "pieces": 2, "composition": ["Лосось", "Рис"]},
+      {"slug": "nigiri-tunec", "name": "Нигири с Тунцом (2 шт)", "desc": "Тунец высокого качества на рисе.", "price": 200, "weight": 80, "pieces": 2, "composition": ["Тунец", "Рис"]},
+      {"slug": "nigiri-ugor", "name": "Нигири с Угрем (2 шт)", "desc": "Копченый угорь на рисе с соусом унаги.", "price": 250, "weight": 85, "pieces": 2, "composition": ["Угорь", "Соус унаги", "Рис"]},
+      {"slug": "nigiri-krevetka", "name": "Нигири с Креветкой (2 шт)", "desc": "Отварная креветка на рисе.", "price": 190, "weight": 80, "pieces": 2, "composition": ["Креветка", "Рис"]},
+      {"slug": "gunkan-losos", "name": "Гункан с Лососем (2 шт)", "desc": "Лосось, рис, нори, икра тобико.", "price": 220, "weight": 90, "pieces": 2, "composition": ["Лосось", "Икра тобико", "Рис", "Нори"]},
+      {"slug": "gunkan-ugor", "name": "Гункан с Угрем (2 шт)", "desc": "Угорь, рис, нори, соус унаги.", "price": 280, "weight": 90, "pieces": 2, "composition": ["Угорь", "Соус унаги", "Рис", "Нори"]},
+      {"slug": "gunkan-krevetka", "name": "Гункан с Креветкой (2 шт)", "desc": "Креветка, рис, нори, икра тобико.", "price": 230, "weight": 90, "pieces": 2, "composition": ["Креветка", "Икра тобико", "Рис", "Нори"]},
+      {"slug": "gunkan-spaysi-krab", "name": "Гункан с Острым Снежным Крабом (2 шт)", "desc": "Снежный краб, рис, нори, соус спайси.", "price": 200, "weight": 90, "pieces": 2, "composition": ["Снежный краб", "Соус спайси", "Рис", "Нори"]},
+      {"slug": "gunkan-snezhnyy-krab", "name": "Гункан со Снежным Крабом (2 шт)", "desc": "Снежный краб, рис, нори.", "price": 190, "weight": 85, "pieces": 2, "composition": ["Снежный краб", "Рис", "Нори"]},
+      {"slug": "gunkan-tunec", "name": "Гункан с Тунцом (2 шт)", "desc": "Тунец, рис, нори, икра тобико.", "price": 240, "weight": 90, "pieces": 2, "composition": ["Тунец", "Икра тобико", "Рис", "Нори"]}
+    ],
+    "pokesalads": [
+      {"slug": "poke-krevetka", "name": "Поке с Креветкой", "desc": "Рис, Креветка, Салат Чука, Бобы, Авокадо, Огурец, Томаты Чери, Соус Манго-Чили, Соус ореховый, Белый Кунжут.", "price": 525, "weight": 260, "pieces": 1, "composition": ["Креветка", "Авокадо", "Огурец", "Салат чука", "Бобы", "Томат", "Кунжут", "Соус манго-чили", "Соус ореховый", "Рис"]},
+      {"slug": "poke-tunec", "name": "Поке с Тунцом", "desc": "Рис, Тунец, Салат Чука, Бобы, Авокадо, Огурец, Томаты Чери, Соус Манго-Чили, Соус ореховый, Белый Кунжут.", "price": 495, "weight": 260, "pieces": 1, "composition": ["Тунец", "Авокадо", "Огурец", "Салат чука", "Бобы", "Томат", "Кунжут", "Соус манго-чили", "Соус ореховый", "Рис"]},
+      {"slug": "poke-losos", "name": "Поке с Лососем", "desc": "Рис, Лосось, Салат Чука, Бобы, Авокадо, Огурец, Томаты Чери, Соус Манго-Чили, Соус ореховый, Белый Кунжут.", "price": 545, "weight": 260, "pieces": 1, "composition": ["Лосось", "Авокадо", "Огурец", "Салат чука", "Бобы", "Томат", "Кунжут", "Соус манго-чили", "Соус ореховый", "Рис"]},
+      {"slug": "salat-chuka", "name": "Салат Чука", "desc": "Водоросли вакамэ, кунжутное масло, соевый соус, кунжут, острый перец.", "price": 290, "weight": 180, "pieces": 1, "composition": ["Салат чука", "Кунжут", "Соевый соус", "Соус спайси"]},
+      {"slug": "salat-morskiy", "name": "Морской Салат", "desc": "Креветка, кальмар, микс салата, лимон, соевый соус.", "price": 380, "weight": 200, "pieces": 1, "composition": ["Креветка", "Кальмар", "Салат", "Лимон", "Соевый соус"]},
+      {"slug": "salat-cezar", "name": "Салат Цезарь с Курицей", "desc": "Копченая курица, салат романо, томаты черри, сухари, соус цезарь, пармезан.", "price": 350, "weight": 220, "pieces": 1, "composition": ["Копченая курица", "Салат", "Томат", "Сухари", "Соус цезарь", "Сыр гауда"]}
+    ],
+    "hot": [
+      {"slug": "tempura-krevetka-hot", "name": "Темпура Креветка (6 шт)", "desc": "Хрустящие креветки в кляре с лимоном.", "price": 280, "weight": 150, "pieces": 6, "composition": ["Креветка", "Кляр", "Лимон"]},
+      {"slug": "ris-s-kuricey", "name": "Рис с Курицей Терияки", "desc": "Рис, куриное филе, соус терияки, кунжут, зеленый лук.", "price": 340, "weight": 300, "pieces": 1, "composition": ["Копченая курица", "Рис", "Соус терияки", "Кунжут", "Зеленый лук"]},
+      {"slug": "ris-s-ugrem", "name": "Рис с Угрем", "desc": "Рис, угорь копченый, соус унаги, кунжут.", "price": 450, "weight": 300, "pieces": 1, "composition": ["Угорь", "Рис", "Соус унаги", "Кунжут"]},
+      {"slug": "udon-s-kuricey", "name": "Удон с Курицей", "desc": "Лапша удон, куриное филе, соус терияки, овощи.", "price": 370, "weight": 350, "pieces": 1, "composition": ["Копченая курица", "Соус терияки", "Болгарский перец", "Зеленый лук"]},
+      {"slug": "udon-s-krevetkoy", "name": "Удон с Креветкой", "desc": "Лапша удон, креветка, соус терияки, овощи.", "price": 420, "weight": 350, "pieces": 1, "composition": ["Креветка", "Соус терияки", "Болгарский перец", "Зеленый лук"]},
+      {"slug": "miso-sup", "name": "Мисо Суп", "desc": "Соевая паста мисо, тофу, нори, зеленый лук.", "price": 250, "weight": 300, "pieces": 1, "composition": ["Нори", "Зеленый лук", "Соевый соус"]},
+      {"slug": "tom-yam-krevetka", "name": "Том Ям с Креветкой", "desc": "Креветка, кокосовое молоко, лимон, острый перец.", "price": 480, "weight": 350, "pieces": 1, "composition": ["Креветка", "Лимон", "Соус спайси"]},
+      {"slug": "spring-rolls", "name": "Спринг-роллы (4 шт)", "desc": "Рисовая бумага, овощи, стеклянная лапша, соус чили.", "price": 260, "weight": 160, "pieces": 4, "composition": ["Кляр", "Салат", "Огурец", "Майонез"]}
+    ],
+    "desserts": [
+      {"slug": "chizkeyk-karamel", "name": "Чизкейк Карамельный с Арахисом", "desc": "Нежный чизкейк с карамельным топингом и хрустящим арахисом.", "price": 245, "weight": 150, "pieces": 1, "composition": ["Сливочный сыр"]},
+      {"slug": "mochi-mango", "name": "Моти Манго (2 шт)", "desc": "Японский десерт из рисового теста с начинкой манго.", "price": 190, "weight": 80, "pieces": 2, "composition": ["Рис"]},
+      {"slug": "mochi-matcha", "name": "Моти Матча (2 шт)", "desc": "Японский десерт с начинкой из зеленого чая матча.", "price": 190, "weight": 80, "pieces": 2, "composition": ["Рис"]},
+      {"slug": "chizkeyk-nyu-york", "name": "Чизкейк Нью-Йорк", "desc": "Классический американский чизкейк на тонком корже.", "price": 280, "weight": 170, "pieces": 1, "composition": ["Сливочный сыр", "Японский омлет"]},
+      {"slug": "matcha-roll-dessert", "name": "Матча Ролл", "desc": "Бисквитный рулет с кремом из матча и белым шоколадом.", "price": 320, "weight": 180, "pieces": 8, "composition": ["Сливочный сыр"]},
+      {"slug": "dorayaki", "name": "Японский Блинчик Дораяки", "desc": "Воздушный бисквит с начинкой из пасты адзуки.", "price": 220, "weight": 120, "pieces": 2, "composition": ["Рис"]}
+    ],
+    "dop": [
+      {"slug": "sake", "name": "Сакэ (150 мл)", "desc": "Традиционное японское рисовое вино.", "price": 390, "weight": 150, "pieces": 1, "composition": ["Сакэ"]},
+      {"slug": "imbir", "name": "Имбирь маринованный (50 г)", "desc": "Классическое дополнение к суши и роллам.", "price": 80, "weight": 50, "pieces": 1, "composition": []},
+      {"slug": "vasabi", "name": "Васаби (50 г)", "desc": "Острая японская приправа.", "price": 50, "weight": 50, "pieces": 1, "composition": ["Васаби"]},
+      {"slug": "soevyy-sous", "name": "Соевый соус (100 мл)", "desc": "Классический японский соевый соус.", "price": 60, "weight": 100, "pieces": 1, "composition": ["Соевый соус"]},
+      {"slug": "spaysi-sous", "name": "Соус Спайси (50 г)", "desc": "Острый японский майонезный соус.", "price": 90, "weight": 50, "pieces": 1, "composition": ["Соус спайси", "Майонез"]},
+      {"slug": "unagi-sous", "name": "Соус Унаги (50 г)", "desc": "Сладкий соус для угря.", "price": 100, "weight": 50, "pieces": 1, "composition": ["Соус унаги", "Соевый соус"]},
+      {"slug": "coca-cola", "name": "Coca-Cola (0.33 л)", "desc": "Охлажденный газированный напиток.", "price": 120, "weight": 330, "pieces": 1, "composition": []},
+      {"slug": "voda", "name": "Вода минеральная (0.5 л)", "desc": "Чистая питьевая вода.", "price": 70, "weight": 500, "pieces": 1, "composition": []}
+    ]
+  },
+  "image_urls": {
+    "rolls": "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=800&q=80",
+    "baked": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=800&q=80",
+    "tempura": "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?auto=format&fit=crop&w=800&q=80",
+    "sushi": "https://images.unsplash.com/photo-1611143669185-af224c5e3252?auto=format&fit=crop&w=800&q=80",
+    "poke": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+    "dessert": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=800&q=80",
+    "dop": "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=800&q=80",
+    "coca": "https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=800&q=80",
+    "mochi": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=800&q=80"
+  },
+  "product_overrides": {
+    "mochi-mango": {"image": "mochi"},
+    "mochi-matcha": {"image": "mochi"},
+    "matcha-roll-dessert": {"image": "mochi"},
+    "dorayaki": {"image": "mochi"},
+    "tempura-krevetka-hot": {"image": "tempura"},
+    "grebeshok-tempura": {"image": "tempura"},
+    "grebeshok-fri-unagi": {"image": "tempura"},
+    "losos-fri": {"image": "tempura"},
+    "okinawa-fri": {"image": "tempura"},
+    "chiken-fri": {"image": "tempura"},
+    "ebi-fri": {"image": "tempura"},
+    "spaysi-roll-fri": {"image": "tempura"},
+    "bekon-tempura": {"image": "tempura"},
+    "krabs-fri": {"image": "tempura"},
+    "spring-rolls": {"image": "tempura"},
+    "coca-cola": {"image": "coca"},
+    "voda": {"image": "coca"},
+    "sake": {"image": "dop"},
+    "imbir": {"image": "dop"},
+    "vasabi": {"image": "dop"},
+    "soevyy-sous": {"image": "dop"},
+    "spaysi-sous": {"image": "dop"},
+    "unagi-sous": {"image": "dop"}
+  },
+  "sets": [
+    {"slug": "set-azia", "name": "Сет Азия 🌏", "desc": "Куба (8 шт.), Кудзи (8 шт.), Запеченный Гребешок Спайси (8 шт.), Запеченный Бонито со Снежным Крабом (8 шт.).", "price": 1860, "weight": 1000, "pieces": 32, "composition": ["Лосось", "Снежный краб", "Гребешок", "Сливочный сыр", "Рис", "Нори", "Авокадо"], "is_new": true, "benefit_badge": "17% выгода"},
+    {"slug": "set-4-polovinki", "name": "Сет 4 Половинки 🎯", "desc": "Филадельфия Лосось (4 шт.), Цезарь Запеченный (4 шт.), Хоккайдо (4 шт.), Марокко (4 шт.).", "price": 870, "weight": 500, "pieces": 16, "composition": ["Лосось", "Сливочный сыр", "Копченая курица", "Бекон", "Рис", "Нори", "Огурец"], "is_new": true, "benefit_badge": ""},
+    {"slug": "set-romantik", "name": "Сет Романтик 💕", "desc": "Калифорния со Снежным крабом (8 шт.), Филадельфия Креветка (8 шт.), Ролл с Огурцом (6 шт.), Ролл с Японским Омлетом (6 шт.).", "price": 1310, "weight": 700, "pieces": 28, "composition": ["Снежный краб", "Креветка", "Сливочный сыр", "Огурец", "Японский омлет", "Рис", "Нори"], "is_new": false, "benefit_badge": "22% выгода"},
+    {"slug": "set-5-polovinok", "name": "Сет 5 Половинок ✋", "desc": "Филадельфия Снежный Краб (4 шт.), Крабс Темпура (4 шт.), Монтана (4 шт.), Филадельфия Японский Омлет (4 шт.), Сафари (4 шт.).", "price": 970, "weight": 600, "pieces": 20, "composition": ["Снежный краб", "Сливочный сыр", "Японский омлет", "Кляр", "Рис", "Нори"], "is_new": true, "benefit_badge": ""},
+    {"slug": "set-dlya-tebya", "name": "Сет Для Тебя 🎁", "desc": "Джерси (8 шт.), Сангай (8 шт.), Филадельфия Лосось (4 шт.).", "price": 1285, "weight": 650, "pieces": 20, "composition": ["Лосось", "Сливочный сыр", "Авокадо", "Огурец", "Рис", "Нори"], "is_new": false, "benefit_badge": "18% выгода"},
+    {"slug": "set-bonito", "name": "Сет Бонито 🔥", "desc": "Филадельфия в Стружке Тунца (8 шт.), Запеченный Бонито с Лососем Терияки (8 шт.), Бонито с Креветкой (4 шт.), Бонито с Лососем (4 шт.).", "price": 1450, "weight": 750, "pieces": 24, "composition": ["Тунец", "Лосось", "Креветка", "Сливочный сыр", "Стружка тунца", "Рис", "Нори"], "is_new": false, "benefit_badge": "23% выгода"},
+    {"slug": "set-okinawa", "name": "Сет Окинава 🏝️", "desc": "Горячий с Гребешком (8 шт.), Окинава (8 шт.), Блэк Ролл с Креветкой (8 шт.).", "price": 1565, "weight": 750, "pieces": 24, "composition": ["Гребешок", "Креветка", "Сливочный сыр", "Копченая курица", "Томат", "Рис", "Нори"], "is_new": false, "benefit_badge": "17% выгода"},
+    {"slug": "set-s-lososem", "name": "Сет с Лососем 🐟", "desc": "Суши с Лососем (2 шт.), Гункан с Лососем (2 шт.), Ролл с Лососем (6 шт.), Филадельфия с Лососем (8 шт.), Бонито с Лососем (8 шт.), Лосось Темпура (8 шт.), Горячий с Лососем (8 шт.).", "price": 3750, "weight": 1250, "pieces": 42, "composition": ["Лосось", "Сливочный сыр", "Авокадо", "Рис", "Нори", "Кляр"], "is_new": false, "benefit_badge": "5% выгода"},
+    {"slug": "set-s-krevetkoy", "name": "Сет с Креветкой 🦐", "desc": "Суши с Креветкой (2 шт.), Гункан с Креветкой (2 шт.), Ролл с Креветкой (6 шт.), Филадельфия с Креветкой (8 шт.), Бонито с Креветкой (8 шт.), Креветка Темпура (8 шт.), Горячий с Креветкой (8 шт.).", "price": 2740, "weight": 1250, "pieces": 42, "composition": ["Креветка", "Сливочный сыр", "Авокадо", "Рис", "Нори", "Кляр"], "is_new": false, "benefit_badge": "18% выгода"},
+    {"slug": "set-na-kompaniyu", "name": "Сет На Компанию 🎉", "desc": "Ролл со Снежным Крабом и Авокадо (6 шт.), Ролл с Лососем Терияки (6 шт.), Ролл с Копченой Курицей (6 шт.), Крабс Темпура (8 шт.), Бостон (8 шт.), Запеченный Чикен (8 шт.), Запеченный Спайси Краб (8 шт.), Филадельфия Японский Омлет (8 шт.), Бонито с Лососем (8 шт.).", "price": 2750, "weight": 1600, "pieces": 66, "composition": ["Снежный краб", "Лосось", "Копченая курица", "Кляр", "Японский омлет", "Сливочный сыр", "Авокадо", "Рис", "Нори"], "is_new": false, "benefit_badge": "13% выгода"},
+    {"slug": "set-mega", "name": "Сет Мега 💪", "desc": "Бекон Темпура (8 шт.), Окинава (8 шт.), Цезарь Запеченный (8 шт.), Чикен Грин (8 шт.), Греческий (8 шт.), Филадельфия Лосось (4 шт.), Нежный Лосось (4 шт.), Ролл с Огурцом (6 шт.), Ролл с Японским Омлетом (6 шт.), Ролл с Филадельфией (6 шт.).", "price": 2350, "weight": 1700, "pieces": 66, "composition": ["Бекон", "Копченая курица", "Лосось", "Сливочный сыр", "Огурец", "Японский омлет", "Томат", "Рис", "Нори"], "is_new": false, "benefit_badge": "27% выгода"},
+    {"slug": "set-goryachiy", "name": "Сет Горячий 🔥", "desc": "Лосось Фри (6 шт.), Эби Фри (6 шт.), Крабс Темпура (8 шт.), Бекон Темпура (8 шт.), Запеченный Цезарь (8 шт.), Запеченный Краб (8 шт.).", "price": 1760, "weight": 1000, "pieces": 44, "composition": ["Лосось", "Креветка", "Снежный краб", "Бекон", "Кляр", "Соус цезарь", "Рис", "Нори"], "is_new": false, "benefit_badge": "25% выгода"}
+  ],
+  "set_items": {
+    "set-azia": [{"product_slug": "okinawa-fri", "qty": 1}, {"product_slug": "kioto-baked", "qty": 1}, {"product_slug": "zapech-grebeshok-spaysi", "qty": 1}, {"product_slug": "zapech-bonito-krab", "qty": 1}],
+    "set-4-polovinki": [{"product_slug": "fila-losos", "qty": 1}, {"product_slug": "cezar-zapech", "qty": 1}, {"product_slug": "zapech-bonito-krab", "qty": 1}, {"product_slug": "alyaska-firm", "qty": 1}],
+    "set-romantik": [{"product_slug": "california", "qty": 1}, {"product_slug": "fila-krevetka", "qty": 1}, {"product_slug": "roll-s-ogurcom", "qty": 1}, {"product_slug": "roll-s-omletom", "qty": 1}],
+    "set-5-polovinok": [{"product_slug": "nezhnyy-snezhnyy-krab", "qty": 1}, {"product_slug": "krabs-tempura", "qty": 1}, {"product_slug": "nebraska", "qty": 1}, {"product_slug": "philadelphia-omlet", "qty": 1}],
+    "set-dlya-tebya": [{"product_slug": "bonito-losos", "qty": 1}, {"product_slug": "fila-losos", "qty": 1}],
+    "set-bonito": [{"product_slug": "fila-losos", "qty": 1}, {"product_slug": "zapech-bonito-krab", "qty": 1}, {"product_slug": "bonito-krevetka", "qty": 1}, {"product_slug": "bonito-losos", "qty": 1}],
+    "set-okinawa": [{"product_slug": "goryachiy-grebeshok", "qty": 1}, {"product_slug": "okinawa-fri", "qty": 1}, {"product_slug": "bonito-krevetka", "qty": 1}],
+    "set-s-lososem": [{"product_slug": "nigiri-losos", "qty": 1}, {"product_slug": "gunkan-losos", "qty": 1}, {"product_slug": "fila-losos", "qty": 1}, {"product_slug": "bonito-losos", "qty": 1}, {"product_slug": "losos-tempura", "qty": 1}, {"product_slug": "goryachiy-grebeshok", "qty": 1}],
+    "set-s-krevetkoy": [{"product_slug": "nigiri-krevetka", "qty": 1}, {"product_slug": "gunkan-krevetka", "qty": 1}, {"product_slug": "fila-krevetka", "qty": 1}, {"product_slug": "bonito-krevetka", "qty": 1}, {"product_slug": "krevetka-tempura-roll", "qty": 1}, {"product_slug": "goryachiy-grebeshok", "qty": 1}],
+    "set-na-kompaniyu": [{"product_slug": "nezhnyy-snezhnyy-krab", "qty": 1}, {"product_slug": "fila-losos", "qty": 1}, {"product_slug": "roll-s-kopch-kuricey", "qty": 1}, {"product_slug": "krabs-tempura", "qty": 1}, {"product_slug": "bonito-losos", "qty": 1}, {"product_slug": "zapech-chiken", "qty": 1}, {"product_slug": "zapech-spaysi-krab", "qty": 1}, {"product_slug": "philadelphia-omlet", "qty": 1}],
+    "set-mega": [{"product_slug": "bekon-tempura", "qty": 1}, {"product_slug": "okinawa-fri", "qty": 1}, {"product_slug": "cezar-zapech", "qty": 1}, {"product_slug": "fila-losos", "qty": 1}, {"product_slug": "nezhnyy-snezhnyy-krab", "qty": 1}, {"product_slug": "roll-s-ogurcom", "qty": 1}, {"product_slug": "roll-s-omletom", "qty": 1}, {"product_slug": "roll-s-filadelfiey", "qty": 1}],
+    "set-goryachiy": [{"product_slug": "losos-fri", "qty": 1}, {"product_slug": "ebi-fri", "qty": 1}, {"product_slug": "krabs-tempura", "qty": 1}, {"product_slug": "bekon-tempura", "qty": 1}, {"product_slug": "cezar-zapech", "qty": 1}, {"product_slug": "zapech-krab", "qty": 1}]
+  },
+  "test_data": {
+    "restaurant_settings": {
+      "opening_hour": 11,
+      "closing_hour": 23,
+      "min_order_amount": 700,
+      "free_delivery_from": 1500,
+      "suburban_delivery_fee": 100,
+      "delivery_time_min": 45,
+      "delivery_time_max": 60,
+      "restaurant_address": "г Пермь, ул Ленина, д 88",
+      "pickup_discount_percent": 10
+    },
+    "users": [
+      {"username": "+79991111111", "phone": "+79991111111", "role": "customer", "is_staff": false, "is_superuser": false, "password": null},
+      {"username": "+79992222222", "phone": "+79992222222", "role": "customer", "is_staff": false, "is_superuser": false, "password": null},
+      {"username": "+79993333333", "phone": "+79993333333", "role": "customer", "is_staff": false, "is_superuser": false, "password": null},
+      {"username": "+79120000001", "phone": "+79120000001", "role": "manager", "is_staff": true, "is_superuser": false, "password": "admin123"},
+      {"username": "+79120000002", "phone": "+79120000002", "role": "cashier", "is_staff": true, "is_superuser": false, "password": "cashier123"},
+      {"username": "admin", "phone": "", "role": "manager", "is_staff": true, "is_superuser": true, "password": "admin123", "email": "admin@tokyo-rolls.ru"}
+    ],
+    "addresses": [
+      {"username": "+79991111111", "full_address": "г Пермь, ул Ленина, д 1", "flat": "42", "entrance": "1", "floor": "5", "intercom": "42K", "comment": "Позвонить", "is_default": true},
+      {"username": "+79991111111", "full_address": "г Пермь, ул Сибирская, д 15", "flat": "10", "entrance": "2", "is_default": false}
+    ],
+    "promocodes": [
+      {"code": "TOKYO10", "discount_percent": 10, "description": "Скидка 10%", "is_active": true, "valid_from_days": -30, "valid_until_days": 30},
+      {"code": "EXPIRED50", "discount_percent": 50, "description": "Истекшая скидка 50%", "is_active": true, "valid_from_days": -60, "valid_until_days": -1},
+      {"code": "FUTURE20", "discount_percent": 20, "description": "Будущая скидка 20%", "is_active": true, "valid_from_days": 7, "valid_until_days": 37},
+      {"code": "WELCOME", "discount_percent": 15, "description": "Приветственная скидка 15%", "is_active": true, "valid_from_days": null, "valid_until_days": null},
+      {"code": "DISABLED5", "discount_percent": 5, "description": "Отключённый промокод 5%", "is_active": false, "valid_from_days": null, "valid_until_days": null}
+    ]
+  }
+}
