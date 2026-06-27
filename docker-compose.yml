@@ -75,6 +75,7 @@ services:
     build:
       context: ./dashboard
       dockerfile: Dockerfile
+      target: dev
     container_name: tokyo-dashboard
     restart: unless-stopped
     depends_on:
