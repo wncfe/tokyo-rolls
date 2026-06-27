@@ -318,3 +318,14 @@ export async function fetchOrderDetail(orderId: number): Promise<OrderDetail> {
   });
   return handleResponse(response);
 }
+
+/** Перевести отменённый заказ в completed (dismiss). */
+export async function dismissOrder(orderId: number): Promise<void> {
+  await fetch(`${API_BASE_URL}/orders/${orderId}/dismiss/`, {
+    method: 'POST',
+    headers: {
+      ...authHeaders(),
+      'X-CSRFToken': 'ignored',
+    },
+  });
+}

@@ -682,3 +682,39 @@ def order_detail(request, order_id):
             order.save(update_fields=['status', 'yookassa_status'])
 
     return Response(OrderReadSerializer(order).data)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def dismiss_order(request, order_id):
+    """Перевести отменённый заказ в completed (прощальное 'dismiss').
+
+    Вызывается фронтендом, когда пользователь нажал «Заказать снова»
+    в трекере отменённого заказа — подтвердил, что увидел отмену,
+    и хочет начать новый заказ. После этого /orders/active/ больше
+    не вернёт этот заказ.
+    """
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist:
+        return Response(
+            {'detail': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if order.user_id is not None and order.user_id != request.user.id:
+        return Response(
+            {'detail': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if order.status != Order.Status.CANCELLED:
+        return Response(
+            {'detail': 'Only cancelled orders can be dismissed'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    order.status = Order.Status.COMPLETED
+    order.save(update_fields=['status'])
+
+    return Response({'success': True})

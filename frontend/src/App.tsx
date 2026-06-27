@@ -16,7 +16,7 @@ import { useMenu } from "./hooks/useMenu";
 import { useScrollSpy } from "./hooks/useScrollSpy";
 import { useRestaurantStatus } from "./hooks/useRestaurantStatus";
 import { useActiveOrder } from "./hooks/useActiveOrder";
-import { fetchOrderDetail } from "./api";
+import { fetchOrderDetail, dismissOrder } from "./api";
 
 export default function App() {
   // Hooks
@@ -85,12 +85,16 @@ export default function App() {
     setIsTrackerOpen(true);
   }, [refreshActiveOrder]);
 
-  // ── Reorder after cancellation: close tracker → open cart ──
+  // ── Reorder after cancellation: dismiss → close tracker → open cart ──
   const handleReorder = useCallback(() => {
+    const orderId = activeOrder?.id;
+    if (orderId) {
+      dismissOrder(orderId).catch(() => {});
+    }
     setIsTrackerOpen(false);
     setActiveOrder(null);
     setIsCartOpen(true);
-  }, []);
+  }, [activeOrder?.id]);
 
   // Auth handlers (passwordless)
   const handleRequestCode = async (phone: string) => {
