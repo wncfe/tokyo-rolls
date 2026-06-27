@@ -617,15 +617,18 @@ def payment_status(request, order_id):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def active_order(request):
-    """Вернуть последний заказ пользователя (исключая completed).
+    """Вернуть последний заказ пользователя (исключая completed и dismissed).
 
-    Cancelled-заказы возвращаются — фронтенд показывает их в трекере
-    с серым статусом, чтобы пользователь видел отмену и мог перезаказать.
+    Cancelled-заказы возвращаются (пока не dismissed) — фронтенд показывает
+    их в трекере с серым статусом, чтобы пользователь видел отмену и мог
+    перезаказать. После dismiss заказ скрывается, статус сохраняется для
+    аналитики.
     """
     order = (
         Order.objects
         .filter(user=request.user)
         .exclude(status=Order.Status.COMPLETED)
+        .exclude(dismissed=True)
         .order_by('-created_at')
         .first()
     )
@@ -687,12 +690,13 @@ def order_detail(request, order_id):
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def dismiss_order(request, order_id):
-    """Перевести отменённый заказ в completed (прощальное 'dismiss').
+    """Скрыть отменённый заказ из активных (dismiss), не меняя статус.
 
     Вызывается фронтендом, когда пользователь нажал «Заказать снова»
     в трекере отменённого заказа — подтвердил, что увидел отмену,
     и хочет начать новый заказ. После этого /orders/active/ больше
-    не вернёт этот заказ.
+    не вернёт этот заказ, но оригинальный статус (cancelled)
+    сохраняется для аналитики.
     """
     try:
         order = Order.objects.get(pk=order_id)
@@ -714,7 +718,7 @@ def dismiss_order(request, order_id):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    order.status = Order.Status.COMPLETED
-    order.save(update_fields=['status'])
+    order.dismissed = True
+    order.save(update_fields=['dismissed'])
 
     return Response({'success': True})

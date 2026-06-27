@@ -557,6 +557,11 @@ class Order(models.Model):
         max_length=20, blank=True,
         verbose_name='Статус платежа в ЮKassa',
     )
+    dismissed = models.BooleanField(
+        default=False,
+        verbose_name='Скрыт пользователем',
+        help_text='Пользователь подтвердил отмену/завершение — заказ не показывается в активных',
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
 
     class Meta:
