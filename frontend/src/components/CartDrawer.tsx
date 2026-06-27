@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { X, ShoppingBag, Truck, Store, ClipboardCheck } from 'lucide-react';
 import { CartItem, RestaurantSettings, User, Address, OrderDetail } from '../types';
 import { useCartCheckout } from '../hooks/useCartCheckout';
@@ -25,6 +26,7 @@ interface CartDrawerProps {
   onOpenAuth: () => void;
   onRefreshAddresses: () => Promise<void>;
   activeOrder: OrderDetail | null;
+  onOrderSuccess?: () => void;
   onOpenTracker: () => void;
 }
 
@@ -45,10 +47,19 @@ export default function CartDrawer({
   onOpenAuth,
   onRefreshAddresses,
   activeOrder,
+  onOrderSuccess,
   onOpenTracker,
 }: CartDrawerProps) {
   const checkout = useCartCheckout(isOpen);
   const addr = useCartAddress(addresses);
+
+  // Notify parent when order succeeds (e.g. cash/pickup → show tracker)
+  useEffect(() => {
+    if (checkout.orderSuccess && onOrderSuccess) {
+      onOrderSuccess();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkout.orderSuccess]);
 
   if (!isOpen) return null;
 

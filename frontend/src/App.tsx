@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import Header from "./components/Header";
 import CategoryNav from "./components/CategoryNav";
 import ProductModal from "./components/ProductModal";
@@ -32,7 +32,7 @@ export default function App() {
   } = useMenu();
   const isRestaurantOpen = useRestaurantStatus(restaurantSettings);
   const { activeCategory, activeSubcategory, navigateTo } = useScrollSpy();
-  const { activeOrder, refreshActiveOrder } = useActiveOrder();
+  const { activeOrder, isLoading: isActiveOrderLoading, refreshActiveOrder, setActiveOrder } = useActiveOrder();
 
   // UI state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -67,6 +67,41 @@ export default function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run once on mount
+
+  // ── Scroll lock for modals ──
+  useEffect(() => {
+    if (isCartOpen || isTrackerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isCartOpen, isTrackerOpen]);
+
+  // ── Order success: refresh active order and open tracker ──
+  const handleOrderSuccess = useCallback(async () => {
+    setIsCartOpen(false);
+    await refreshActiveOrder();
+    setIsTrackerOpen(true);
+  }, [refreshActiveOrder]);
+
+  // ── Reorder after cancellation: restore cart from snapshot ──
+  const handleReorder = useCallback(() => {
+    // Restore last cart snapshot if available
+    try {
+      const snapshot = localStorage.getItem('tokyo-rolls-last-cart');
+      if (snapshot) {
+        localStorage.setItem('tokyo-rolls-cart', snapshot);
+        localStorage.removeItem('tokyo-rolls-last-cart');
+        // Reload to reinitialize cart from localStorage
+        window.location.reload();
+        return;
+      }
+    } catch { /* ignore */ }
+    // Fallback: close tracker → cart button appears (activeOrder nullified in onClose)
+    setIsTrackerOpen(false);
+    setActiveOrder(null);
+  }, []);
 
   // Auth handlers (passwordless)
   const handleRequestCode = async (phone: string) => {
@@ -132,8 +167,8 @@ export default function App() {
           </ErrorBoundary>
         )}
       </main>
-      {/* Unified button: cart or tracker */}
-      {!isCartOpen && !isTrackerOpen && (
+      {/* Unified button: cart or tracker — hidden while loading to avoid flicker */}
+      {!isActiveOrderLoading && !isCartOpen && !isTrackerOpen && (
         <OrderTrackerButton
           activeOrder={activeOrder}
           cart={cart}
@@ -150,8 +185,14 @@ export default function App() {
           isOpen={isTrackerOpen}
           onClose={() => {
             setIsTrackerOpen(false);
-            refreshActiveOrder();
+            const isFinished = activeOrder.status === 'cancelled' || activeOrder.status === 'completed';
+            if (isFinished) {
+              setActiveOrder(null);
+            } else {
+              refreshActiveOrder();
+            }
           }}
+          onReorder={handleReorder}
           order={activeOrder}
           settings={restaurantSettings}
         />
@@ -177,6 +218,7 @@ export default function App() {
         onClearItem={clearItem}
         onClearCart={clearCart}
         activeOrder={activeOrder}
+        onOrderSuccess={handleOrderSuccess}
         onOpenTracker={() => {
           setIsCartOpen(false);
           setIsTrackerOpen(true);

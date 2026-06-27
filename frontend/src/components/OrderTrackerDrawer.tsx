@@ -7,6 +7,7 @@ import OrderTimeline from './OrderTimeline';
 interface OrderTrackerDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  onReorder?: () => void;
   order: OrderDetail;
   settings: RestaurantSettings;
 }
@@ -14,6 +15,7 @@ interface OrderTrackerDrawerProps {
 export default function OrderTrackerDrawer({
   isOpen,
   onClose,
+  onReorder,
   order: initialOrder,
   settings,
 }: OrderTrackerDrawerProps) {
@@ -228,8 +230,11 @@ export default function OrderTrackerDrawer({
           {isCancelled || isCompleted ? (
             <button
               onClick={() => {
-                onClose();
-                // После закрытия — можно открыть корзину для нового заказа
+                if (onReorder) {
+                  onReorder();
+                } else {
+                  onClose();
+                }
               }}
               className="w-full px-6 py-3 bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm rounded-xl transition-all cursor-pointer select-none"
             >
