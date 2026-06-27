@@ -14,6 +14,7 @@ export default function AuthModal({ isOpen, onClose, onRequestCode, onVerifyCode
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const resetForms = () => {
     setPhone('');
@@ -74,8 +75,6 @@ export default function AuthModal({ isOpen, onClose, onRequestCode, onVerifyCode
       setLoading(false);
     }
   };
-
-  const [resendCooldown, setResendCooldown] = useState(0);
 
   const handleResend = async () => {
     if (resendCooldown > 0) return;
