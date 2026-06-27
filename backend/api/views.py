@@ -15,6 +15,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import viewsets, filters, generics, permissions, status
+from django.views.decorators.cache import cache_control
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -366,6 +367,8 @@ def check_delivery_zone(request):
 
 
 @api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+@cache_control(max_age=60, public=True)
 def restaurant_settings(request):
     """Публичные настройки ресторана: часы работы, мин. заказ, доставка."""
     settings = RestaurantSettings.get_solo()
@@ -458,6 +461,18 @@ def payment_webhook(request):
     Webhook от ЮKassa — уведомление о смене статуса платежа.
     ЮKassa присылает POST с JSON-телом.
     """
+    # Проверка IP-адреса отправителя (whitelist ЮKassa)
+    _YK_IPS = ['84.201.147.0/24', '185.71.76.0/27', '77.75.157.0/27', '77.75.156.0/27']
+    _remote_ip = request.META.get('REMOTE_ADDR', '')
+    if _remote_ip and not settings.DEBUG:
+        import ipaddress
+        if not any(ipaddress.ip_address(_remote_ip) in ipaddress.ip_network(n) for n in _YK_IPS):
+            logger.warning('Webhook: IP %s not in YooKassa whitelist', _remote_ip)
+            return Response(
+                {'detail': 'Forbidden'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
     # Проверка HMAC-подписи (если задан YOOKASSA_SECRET_KEY)
     raw_body = request.body
     if settings.YOOKASSA_SECRET_KEY:

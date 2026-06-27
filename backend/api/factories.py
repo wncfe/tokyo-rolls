@@ -3,6 +3,7 @@
 import io
 import uuid
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -92,7 +93,7 @@ class SubCategoryFactory(DjangoModelFactory):
         model = SubCategory
 
     slug = Sequence(lambda n: f'subcat_{n:04d}')
-    category = SubFactory(CategoryFactory, slug='rolls')
+    category = SubFactory(CategoryFactory)
     name = Sequence(lambda n: f'Подкатегория {n}')
     sort_order = 0
     is_active = True
@@ -244,12 +245,12 @@ class PromoCodeFactory(DjangoModelFactory):
 
     class Params:
         expired = Trait(
-            valid_from=datetime(2020, 1, 1),
-            valid_until=datetime(2020, 12, 31),
+            valid_from=timezone.now() - timedelta(days=730),
+            valid_until=timezone.now() - timedelta(days=365),
         )
         future = Trait(
-            valid_from=datetime(2099, 1, 1),
-            valid_until=datetime(2099, 12, 31),
+            valid_from=timezone.now() + timedelta(days=365),
+            valid_until=timezone.now() + timedelta(days=730),
         )
 
 

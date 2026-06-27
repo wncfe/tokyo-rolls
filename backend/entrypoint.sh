@@ -5,6 +5,9 @@
 # ==============================================================
 set -euo pipefail
 
+echo "→ Fixing volume permissions..."
+chown -R app:app /app/data /app/media /app/staticfiles
+
 echo "→ Running migrations..."
 python manage.py migrate --noinput
 
@@ -32,7 +35,7 @@ if [ "$DB_NEEDS_SEED" -eq 0 ]; then
 fi
 
 echo "→ Starting Gunicorn..."
-exec gunicorn config.wsgi:application \
+exec su -s /bin/sh -c "exec gunicorn config.wsgi:application \
     --bind 0.0.0.0:8000 \
     --workers ${WEB_CONCURRENCY:-2} \
     --threads 2 \
@@ -41,4 +44,4 @@ exec gunicorn config.wsgi:application \
     --max-requests-jitter 50 \
     --access-logfile - \
     --error-logfile - \
-    --log-level info
+    --log-level info" app

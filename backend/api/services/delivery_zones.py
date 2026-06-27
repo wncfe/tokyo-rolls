@@ -54,7 +54,11 @@ def _load_zones() -> dict:
         if not rings:
             continue
 
-        # Берём первое (внешнее) кольцо; игнорируем отверстия для простоты
+        # Проверяем: не ожидаем дыр (inner rings) в текущем GeoJSON
+        assert len(rings) == 1, (
+            f'Polygon "{name}" has {len(rings)} rings. '
+            f'Hole detection not implemented — update delivery_zones.py if needed.'
+        )
         outer_ring = [(pt[0], pt[1]) for pt in rings[0]]
         zones[name] = outer_ring
 

@@ -235,6 +235,7 @@ export default function CheckoutFooter({
             value={promoCode}
             onChange={(e) => { setPromoCode(e.target.value); setPromoError(null); }}
             placeholder="Промокод"
+            maxLength={32}
             className="flex-1 px-4 py-3 text-sm font-medium text-slate-900 bg-slate-50 border border-slate-200 rounded-xl placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white transition-all uppercase"
           />
           <button

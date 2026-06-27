@@ -153,6 +153,7 @@ export default function AddressFormModal({
                 value={flat}
                 onChange={(e) => setFlat(e.target.value)}
                 placeholder="42"
+                maxLength={20}
                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
               />
             </div>
@@ -165,6 +166,7 @@ export default function AddressFormModal({
                 value={entrance}
                 onChange={(e) => setEntrance(e.target.value)}
                 placeholder="1"
+                maxLength={20}
                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
               />
             </div>
@@ -177,6 +179,7 @@ export default function AddressFormModal({
                 value={floor}
                 onChange={(e) => setFloor(e.target.value)}
                 placeholder="3"
+                maxLength={20}
                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
               />
             </div>
@@ -189,6 +192,7 @@ export default function AddressFormModal({
                 value={intercom}
                 onChange={(e) => setIntercom(e.target.value)}
                 placeholder="42#1234"
+                maxLength={50}
                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#E11D48] focus:ring-2 focus:ring-rose-100 transition-all"
               />
             </div>

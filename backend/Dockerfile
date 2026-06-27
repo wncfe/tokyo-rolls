@@ -27,9 +27,6 @@ RUN mkdir -p /app/data /app/staticfiles /app/media
 # Give app user ownership
 RUN chown -R app:app /app
 
-# Switch to non-root user
-USER app
-
 # Expose port for Gunicorn
 EXPOSE 8000
 

@@ -476,7 +476,7 @@ class Address(models.Model):
                 # Блокируем адреса пользователя, чтобы избежать race condition
                 Address.objects.select_for_update().filter(
                     user=self.user, is_default=True
-                ).update(is_default=False)
+                ).order_by('id').update(is_default=False)
             # If this is the first address, make it default
             if not self.pk and not Address.objects.filter(user=self.user).exists():
                 self.is_default = True
