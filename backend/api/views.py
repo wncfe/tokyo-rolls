@@ -617,15 +617,15 @@ def payment_status(request, order_id):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def active_order(request):
-    """Вернуть последний активный заказ пользователя (status != completed/cancelled).
+    """Вернуть последний заказ пользователя (исключая completed).
 
-    Используется фронтендом для определения, показывать ли трекер заказа.
-    Возвращает полные данные заказа (OrderReadSerializer) или null.
+    Cancelled-заказы возвращаются — фронтенд показывает их в трекере
+    с серым статусом, чтобы пользователь видел отмену и мог перезаказать.
     """
     order = (
         Order.objects
         .filter(user=request.user)
-        .exclude(status__in=[Order.Status.COMPLETED, Order.Status.CANCELLED])
+        .exclude(status=Order.Status.COMPLETED)
         .order_by('-created_at')
         .first()
     )

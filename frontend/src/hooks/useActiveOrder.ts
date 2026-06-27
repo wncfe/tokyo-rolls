@@ -10,14 +10,7 @@ export function useActiveOrder() {
   const refreshActiveOrder = useCallback(async () => {
     try {
       const order = await fetchActiveOrder();
-      setActiveOrder((prev) => {
-        // Don't wipe a cancelled/completed order with null — the tracker
-        // drawer needs it to stay visible so the user sees the final status.
-        if (order === null && prev && (prev.status === 'cancelled' || prev.status === 'completed')) {
-          return prev;
-        }
-        return order;
-      });
+      setActiveOrder(order);
     } catch {
       setActiveOrder(null);
     } finally {
