@@ -109,7 +109,7 @@ export default function CheckoutFooter({
   const minOrder = orderType === 'delivery' && zoneInfo
     ? zoneInfo.min_order_amount
     : settings.min_order_amount;
-  const promoDiscountAmount = promoData ? Math.round(subtotal * promoData.discount_percent / 100) : 0;
+  const promoDiscountAmount = promoData ? Math.floor(subtotal * promoData.discount_percent / 100) : 0;
   const deliveryFeeAmount = orderType === 'delivery' && zoneInfo ? zoneInfo.delivery_fee : 0;
   const effectiveTotal = totalPrice - promoDiscountAmount + deliveryFeeAmount;
   const isTooLow = effectiveTotal < minOrder;

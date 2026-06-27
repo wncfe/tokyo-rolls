@@ -413,7 +413,7 @@ class UserProfile(models.Model):
         related_name='profile',
         verbose_name='Пользователь',
     )
-    phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон')
+    phone = models.CharField(max_length=20, unique=True, blank=True, verbose_name='Телефон')
     verification_code = models.CharField(max_length=4, blank=True, verbose_name='Код подтверждения')
     code_sent_at = models.DateTimeField(null=True, blank=True, verbose_name='Код отправлен')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')

@@ -212,6 +212,11 @@ def verify_code(request):
         return Response({'detail': 'Неверный код подтверждения.'},
                         status=status.HTTP_400_BAD_REQUEST)
 
+    # Проверка срока действия кода (5 минут)
+    if profile.code_sent_at and (timezone.now() - profile.code_sent_at) > timedelta(minutes=5):
+        return Response({'detail': 'Код подтверждения истёк. Запросите новый код.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
     # Код верный — очищаем и выдаём токены
     profile.verification_code = ''
     profile.save(update_fields=['verification_code'])

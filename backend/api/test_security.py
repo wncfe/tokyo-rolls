@@ -114,10 +114,9 @@ class TestCodeBruteForce:
             # All attempts should get 400, not 429 (no rate limit)
             assert response.status_code == 400
 
-    def test_code_has_no_expiry(self, api_client, phone_data):
+    def test_code_has_expiry(self, api_client, phone_data):
         """
-        Documented limitation: code_sent_at is stored but never checked
-        for expiry during verification.
+        Code expires after 5 minutes — sent_at must be checked during verification.
         """
         import time
         from datetime import timedelta
@@ -126,17 +125,18 @@ class TestCodeBruteForce:
         from api.models import UserProfile
 
         api_client.post(REQUEST_CODE_URL, phone_data, format='json')
-        # Manually set code_sent_at to 24 hours ago
+        # Manually set code_sent_at to 10 minutes ago (beyond 5 min limit)
         profile = UserProfile.objects.get(phone='+79991111111')
-        profile.code_sent_at = timezone.now() - timedelta(hours=24)
+        profile.code_sent_at = timezone.now() - timedelta(minutes=10)
         profile.save()
 
-        # Code still works despite being 24h old
+        # Code should fail — expired
         response = api_client.post(VERIFY_CODE_URL, {
             **phone_data,
             'code': '1234',
         }, format='json')
-        assert response.status_code == 200
+        assert response.status_code == 400
+        assert 'истёк' in response.data['detail']
 
 
 # ─── Registration flood ───

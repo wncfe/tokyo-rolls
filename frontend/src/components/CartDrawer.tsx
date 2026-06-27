@@ -54,7 +54,7 @@ export default function CartDrawer({
 
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const totalItems = cart.reduce((count, item) => count + item.quantity, 0);
-  const pickupDiscount = orderType === 'pickup' ? Math.trunc(subtotal * (settings.pickup_discount_percent ?? 10) / 100) : 0;
+  const pickupDiscount = orderType === 'pickup' ? Math.floor(subtotal * (settings.pickup_discount_percent ?? 10) / 100) : 0;
   const totalPrice = subtotal - pickupDiscount;
 
   return (

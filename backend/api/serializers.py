@@ -223,10 +223,13 @@ class AddressSerializer(serializers.ModelSerializer):
 
 # ─── Checkout / Order ───
 
+from django.core.validators import MinValueValidator
+
 class OrderItemWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи позиции заказа."""
     product_slug = serializers.SlugField(write_only=True, required=False)
     set_slug = serializers.SlugField(write_only=True, required=False)
+    quantity = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = OrderItem
@@ -306,6 +309,9 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({
                         'promo_code': f'Промокод «{promo_code_str}» истёк.'
                     })
+                # Сохраняем объект промокода в validated_data для create(),
+                # чтобы избежать race condition при повторном SELECT
+                attrs['_promo'] = promo
             except PromoCode.DoesNotExist:
                 raise serializers.ValidationError({
                     'promo_code': f'Промокод «{promo_code_str}» не найден или неактивен.'
@@ -318,12 +324,9 @@ class OrderWriteSerializer(serializers.ModelSerializer):
         promo_code_str = validated_data.pop('promo_code', '')
         delivery_zone = validated_data.pop('_delivery_zone', None)
 
-        # Применить промокод (к этому моменту валидация уже прошла)
-        promo = None
-        discount_percent = 0
-        if promo_code_str and promo_code_str.strip():
-            promo = PromoCode.objects.get(code__iexact=promo_code_str.strip(), is_active=True)
-            discount_percent = promo.discount_percent
+        # Применить промокод (валидация уже прошла — передаём объект через validated_data)
+        promo = validated_data.pop('_promo', None)
+        discount_percent = promo.discount_percent if promo else 0
 
         # Привязать пользователя, если авторизован
         user = self.context['request'].user if self.context['request'].user.is_authenticated else None
@@ -379,6 +382,9 @@ class OrderWriteSerializer(serializers.ModelSerializer):
             promo_discount = int(subtotal * discount_percent / 100) if discount_percent else 0
             discount_amount = pickup_discount + promo_discount
 
+            # Сумма заказа после скидки — не может быть отрицательной
+            subtotal_after_discount = max(0, subtotal - discount_amount)
+
             if order_type == 'pickup':
                 delivery_fee = 0
                 min_order = settings_obj.min_order_amount
@@ -397,16 +403,18 @@ class OrderWriteSerializer(serializers.ModelSerializer):
                         )
                     })
                 # fallback на старые правила (не должно происходить при нормальном flow)
-                delivery_fee = 0 if subtotal - discount_amount >= settings_obj.free_delivery_from else settings_obj.suburban_delivery_fee
+                delivery_fee = 0 if subtotal_after_discount >= settings_obj.free_delivery_from else settings_obj.suburban_delivery_fee
                 min_order = settings_obj.min_order_amount
 
-            # Проверка минимальной суммы заказа (защита от прямых API-запросов)
-            effective_total = subtotal - discount_amount + delivery_fee
-            if effective_total < min_order:
+            # Проверка минимальной суммы заказа (по еде, без учёта доставки)
+            if subtotal_after_discount < min_order:
                 raise serializers.ValidationError({
                     'items': f'Минимальная сумма заказа: {min_order} ₽. '
-                             f'Сейчас: {effective_total} ₽, добавьте ещё {min_order - effective_total} ₽.'
+                             f'Сейчас: {subtotal_after_discount} ₽, добавьте ещё {min_order - subtotal_after_discount} ₽.'
                 })
+
+            # Итог с доставкой — для финальной суммы
+            effective_total = subtotal_after_discount + delivery_fee
 
             order.subtotal = subtotal
             order.discount_amount = discount_amount
@@ -419,17 +427,7 @@ class OrderWriteSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def _validate_promo(code_str):
-        from django.utils import timezone
-        try:
-            promo = PromoCode.objects.get(code__iexact=code_str.strip(), is_active=True)
-            now = timezone.now()
-            if promo.valid_from and now < promo.valid_from:
-                return None
-            if promo.valid_until and now > promo.valid_until:
-                return None
-            return promo
-        except PromoCode.DoesNotExist:
-            return None
+        pass  # deprecated — validation moved to validate() and create()
 
 
 class OrderItemReadSerializer(serializers.ModelSerializer):
