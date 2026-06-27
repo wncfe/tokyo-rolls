@@ -74,7 +74,7 @@ services:
     build:
       context: ./dashboard
       dockerfile: Dockerfile
-      target: dev
+      target: prod
     container_name: tokyo-dashboard
     restart: unless-stopped
     depends_on:
@@ -84,9 +84,9 @@ services:
       - "3001:3001"
     networks:
       - app-network
-    # VITE_API_URL не ставим — в dev-режиме клиент ходит через Vite-прокси
+    # Для продакшена VITE_API_URL не нужен — статика через serve, API через nginx
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3001/"]
       interval: 30s
       timeout: 10s
       retries: 3

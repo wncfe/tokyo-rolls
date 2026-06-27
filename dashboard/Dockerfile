@@ -30,4 +30,3 @@ RUN chown -R appuser:nodejs /app/dist
 USER appuser
 EXPOSE 3001
 CMD ["serve", "dist", "-l", "3001", "--no-clipboard"]
-CMD ["node", "server.js"]
