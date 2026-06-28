@@ -47,11 +47,15 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const oid = params.get('order_id');
-    if (oid && !isNaN(Number(oid))) {
+    const pendingId = localStorage.getItem('tokyo-rolls-pending-order-id');
+
+    const orderIdToCheck = oid || pendingId;
+
+    if (orderIdToCheck && !isNaN(Number(orderIdToCheck))) {
       // Clean URL
       window.history.replaceState({}, '', '/');
       // Fetch order and open tracker
-      fetchOrderDetail(Number(oid)).then((order) => {
+      fetchOrderDetail(Number(orderIdToCheck)).then((order) => {
         refreshActiveOrder();
         setIsTrackerOpen(true);
         // Clear cart only if payment already confirmed
@@ -69,6 +73,22 @@ export default function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run once on mount
+
+  // Handle bfcache restoration (user presses Back after YooKassa redirect)
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        // Page restored from back-forward cache — check for pending order
+        const pendingId = localStorage.getItem('tokyo-rolls-pending-order-id');
+        if (pendingId && !isNaN(Number(pendingId))) {
+          refreshActiveOrder();
+          setIsTrackerOpen(true);
+        }
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, [refreshActiveOrder]);
 
   // ── Scroll lock for modals ──
   useEffect(() => {

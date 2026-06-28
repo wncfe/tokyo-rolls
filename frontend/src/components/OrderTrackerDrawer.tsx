@@ -22,6 +22,7 @@ export default function OrderTrackerDrawer({
   settings,
 }: OrderTrackerDrawerProps) {
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const {
     order,
@@ -34,10 +35,11 @@ export default function OrderTrackerDrawer({
   const handleCancelOrder = async () => {
     if (!window.confirm('Вы точно хотите отменить заказ?')) return;
     setCancelLoading(true);
+    setCancelError(null);
     try {
       await cancelOrder(currentOrder.id);
-    } catch {
-      // poll обновит статус автоматически
+    } catch (err: any) {
+      setCancelError(err.message || 'Не удалось отменить заказ');
     } finally {
       setCancelLoading(false);
     }
@@ -283,18 +285,25 @@ export default function OrderTrackerDrawer({
 
               {/* Кнопка отмены заказа — только для отменяемых статусов */}
               {isCancellable && (
-                <button
-                  onClick={handleCancelOrder}
-                  disabled={cancelLoading}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-sm rounded-xl transition-all cursor-pointer select-none border border-rose-200 disabled:opacity-50"
-                >
-                  {cancelLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <AlertTriangle className="w-4 h-4" />
+                <>
+                  {cancelError && (
+                    <p className="text-xs text-rose-500 bg-rose-50 rounded-lg px-3 py-2 text-center">
+                      {cancelError}
+                    </p>
                   )}
-                  Отменить заказ
-                </button>
+                  <button
+                    onClick={handleCancelOrder}
+                    disabled={cancelLoading}
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-sm rounded-xl transition-all cursor-pointer select-none border border-rose-200 disabled:opacity-50"
+                  >
+                    {cancelLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4" />
+                    )}
+                    Отменить заказ
+                  </button>
+                </>
               )}
             </>
           )}
