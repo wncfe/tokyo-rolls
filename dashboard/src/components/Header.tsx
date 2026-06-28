@@ -31,15 +31,17 @@ export default function Header({ currentRole, onRoleChange, onLogout }: HeaderPr
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="bg-[#E11D48] text-white p-2.5 rounded-xl flex items-center justify-center">
-              <span className="font-black text-lg tracking-wider">S!</span>
+            <div className="relative flex items-center justify-center w-12 h-12 bg-[#E11D48] rounded-full shadow-lg shadow-rose-200/50">
+              <span className="text-white font-extrabold text-[10px] tracking-[0.25em] pl-[0.25em]">
+                ТОКИО
+              </span>
             </div>
             <div>
-              <span className="text-xl font-bold tracking-tight block text-slate-900">
-                СУШИ<span className="text-[#E11D48]">BEAST</span>
+              <span className="text-xl font-black tracking-tight block text-slate-900">
+                TOKYO <span className="text-[#E11D48]">ROLLS</span>
               </span>
               <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block font-bold">
-                Админ-Панель Доставки
+                Админ-Панель
               </span>
             </div>
           </div>

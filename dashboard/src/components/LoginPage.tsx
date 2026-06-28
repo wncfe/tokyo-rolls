@@ -87,14 +87,16 @@ export default function LoginPage({ onLogin, onError }: LoginPageProps) {
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex bg-[#E11D48] text-white p-4 rounded-2xl mb-4">
-            <span className="font-black text-2xl tracking-wider">S!</span>
+          <div className="inline-flex items-center justify-center bg-[#E11D48] w-16 h-16 rounded-full shadow-lg shadow-rose-200/50 mx-auto mb-4">
+            <span className="font-extrabold text-white text-sm tracking-[0.25em] pl-[0.25em]">
+              ТОКИО
+            </span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            СУШИ<span className="text-[#E11D48]">BEAST</span>
+          <h1 className="text-2xl font-black text-slate-900">
+            TOKYO <span className="text-[#E11D48]">ROLLS</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1 font-medium">
-            Админ-панель доставки
+            Админ-панель
           </p>
         </div>
 

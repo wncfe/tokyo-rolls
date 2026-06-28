@@ -1,6 +1,6 @@
 {
-  "name": "Sushi Delivery Admin Panel",
-  "description": "A streamlined, high-contrast dashboard for managing sushi restaurant delivery orders, kitchen queue, and menu items.",
+  "name": "Tokyo Rolls Admin Panel",
+  "description": "Админ-панель управления заказами, кухней и меню ресторана Tokyo Rolls.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
