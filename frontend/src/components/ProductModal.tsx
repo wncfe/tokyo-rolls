@@ -136,12 +136,6 @@ export default function ProductModal({
 
           {/* Pricing & buy actions */}
           <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between gap-4">
-            <div className="flex flex-col">
-              <span className="text-slate-450 text-xs select-none">Общая стоимость</span>
-              <span className="text-slate-900 font-mono font-black text-2xl md:text-3xl tracking-tight">
-                {product.price} <span className="text-sm font-normal text-slate-400">₽</span>
-              </span>
-            </div>
 
             {/* Buy controls */}
             {cartQuantity > 0 ? (
@@ -169,7 +163,7 @@ export default function ProductModal({
                 onClick={onAddToCart}
                 className="px-6 py-3.5 bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold text-sm tracking-tight rounded-2xl hover:shadow-xl hover:shadow-rose-100/50 active:scale-95 transition-all duration-300 cursor-pointer uppercase border border-transparent"
               >
-                Добавить за {product.price} ₽
+                Добавить за {product.price}{'\u00A0'}₽
               </button>
             )}
           </div>
