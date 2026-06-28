@@ -90,6 +90,13 @@ export default function App() {
     return () => window.removeEventListener('pageshow', handlePageShow);
   }, [refreshActiveOrder]);
 
+  // ── Cleanup: close tracker when activeOrder vanishes (e.g. poll detects completed) ──
+  useEffect(() => {
+    if (!activeOrder && isTrackerOpen) {
+      setIsTrackerOpen(false);
+    }
+  }, [activeOrder, isTrackerOpen]);
+
   // ── Scroll lock for modals ──
   useEffect(() => {
     if (isCartOpen || isTrackerOpen) {
