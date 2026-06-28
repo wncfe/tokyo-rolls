@@ -67,7 +67,7 @@ export default function ProductModal({
 
             {/* Weight/pieces bar */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 text-xs font-mono text-slate-500 select-none mb-4 rounded-full">
-              <span>{product.pieces > 1 ? `${product.pieces} кусочков` : '1 шт'}</span>
+              <span>{product.pieces > 1 ? `${product.pieces} шт.` : '1 шт'}</span>
               <span className="text-slate-300">•</span>
               <span>{product.weight} г</span>
             </div>
@@ -80,7 +80,7 @@ export default function ProductModal({
             {/* СОСТАВ (Composition) */}
             <div className="mb-5">
               <h4 className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2.5">
-                🍀 Состав ingredients:
+                🍀 Состав:
               </h4>
               <div className="flex flex-wrap gap-1.5">
                 {product.composition.map((ingredient, i) => (

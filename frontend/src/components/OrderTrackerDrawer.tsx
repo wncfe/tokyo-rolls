@@ -1,6 +1,8 @@
-import { X, Loader2, ImageIcon } from 'lucide-react';
+import { useState } from 'react';
+import { X, Loader2, ImageIcon, AlertTriangle } from 'lucide-react';
 import { OrderDetail, RestaurantSettings } from '../types';
 import { useOrderTracking, getStatusLabel, getStatusColor, getOrderProgress, getEstimatedMinutes } from '../hooks/useOrderTracking';
+import { cancelOrder } from '../api';
 import PaymentTimer from './PaymentTimer';
 import OrderTimeline from './OrderTimeline';
 
@@ -19,6 +21,8 @@ export default function OrderTrackerDrawer({
   order: initialOrder,
   settings,
 }: OrderTrackerDrawerProps) {
+  const [cancelLoading, setCancelLoading] = useState(false);
+
   const {
     order,
     timelineSteps,
@@ -27,8 +31,22 @@ export default function OrderTrackerDrawer({
     pollError,
   } = useOrderTracking(initialOrder.id);
 
+  const handleCancelOrder = async () => {
+    if (!window.confirm('Вы точно хотите отменить заказ?')) return;
+    setCancelLoading(true);
+    try {
+      await cancelOrder(currentOrder.id);
+    } catch {
+      // poll обновит статус автоматически
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   const currentOrder = order ?? initialOrder;
   const isAwaitingPayment = currentOrder.status === 'awaiting_payment' || currentOrder.status === 'unpaid';
+  const isOnlinePayment = currentOrder.payment_method === 'card_online';
+  const isCancellable = ['awaiting_payment', 'unpaid', 'pending'].includes(currentOrder.status);
   const isCancelled = currentOrder.status === 'cancelled';
   const isCompleted = currentOrder.status === 'completed';
   const statusLabel = getStatusLabel(currentOrder.status, currentOrder.order_type);
@@ -87,6 +105,20 @@ export default function OrderTrackerDrawer({
           {isAwaitingPayment && (
             <div className="border-b border-slate-100 bg-slate-50/50">
               <PaymentTimer timeRemaining={timeRemaining} isExpired={isPaymentExpired} />
+
+              {/* Кнопка «Оплатить» — только для онлайн-оплаты (fallback, если юзер ушёл с редиректа) */}
+              {isOnlinePayment && currentOrder.payment_url && (
+                <div className="px-5 pb-4">
+                  <a
+                    href={currentOrder.payment_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl transition-all cursor-pointer select-none"
+                  >
+                    Оплатить
+                  </a>
+                </div>
+              )}
             </div>
           )}
 
@@ -226,7 +258,7 @@ export default function OrderTrackerDrawer({
         </div>
 
         {/* FOOTER — buttons */}
-        <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+        <div className="p-4 border-t border-slate-200 bg-white shrink-0 space-y-2">
           {isCancelled || isCompleted ? (
             <button
               onClick={() => {
@@ -241,12 +273,30 @@ export default function OrderTrackerDrawer({
               Заказать снова
             </button>
           ) : (
-            <button
-              onClick={onClose}
-              className="w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer select-none border border-slate-200"
-            >
-              Закрыть
-            </button>
+            <>
+              <button
+                onClick={onClose}
+                className="w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer select-none border border-slate-200"
+              >
+                Закрыть
+              </button>
+
+              {/* Кнопка отмены заказа — только для отменяемых статусов */}
+              {isCancellable && (
+                <button
+                  onClick={handleCancelOrder}
+                  disabled={cancelLoading}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-sm rounded-xl transition-all cursor-pointer select-none border border-rose-200 disabled:opacity-50"
+                >
+                  {cancelLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4" />
+                  )}
+                  Отменить заказ
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

@@ -164,3 +164,42 @@ def dismiss_order(request, order_id):
     order.save(update_fields=['dismissed'])
 
     return Response({'success': True})
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def cancel_order(request, order_id):
+    """Отменить заказ пользователем.
+
+    Доступно только для заказов в статусах awaiting_payment / unpaid / pending.
+    """
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist:
+        return Response(
+            {'detail': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if order.user_id is not None and order.user_id != request.user.id:
+        return Response(
+            {'detail': 'Order not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    cancellable_statuses = [
+        Order.Status.AWAITING_PAYMENT,
+        Order.Status.UNPAID,
+        Order.Status.PENDING,
+    ]
+    if order.status not in cancellable_statuses:
+        return Response(
+            {'detail': 'Заказ уже нельзя отменить'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    order.status = Order.Status.CANCELLED
+    order.cancel_reason = 'Отменён пользователем'
+    order.save(update_fields=['status', 'cancel_reason'])
+
+    return Response({'success': True})

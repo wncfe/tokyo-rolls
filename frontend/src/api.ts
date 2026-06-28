@@ -329,3 +329,15 @@ export async function dismissOrder(orderId: number): Promise<void> {
     },
   });
 }
+
+/** Отменить заказ пользователем (только для awaiting_payment / unpaid / pending). */
+export async function cancelOrder(orderId: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/cancel/`, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail || 'Не удалось отменить заказ');
+  }
+}

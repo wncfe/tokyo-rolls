@@ -31,6 +31,7 @@ urlpatterns = [
     path('orders/active/', views.active_order, name='order-active'),
     path('orders/<int:order_id>/', views.order_detail, name='order-detail'),
     path('orders/<int:order_id>/dismiss/', views.dismiss_order, name='order-dismiss'),
+    path('orders/<int:order_id>/cancel/', views.cancel_order, name='order-cancel'),
     # ─── Dashboard (Admin) endpoints ───
     path('admin/orders/', views.admin_order_list, name='admin-order-list'),
     path('admin/orders/<int:order_id>/', views.admin_order_detail, name='admin-order-detail'),

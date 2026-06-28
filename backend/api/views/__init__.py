@@ -30,6 +30,7 @@ from .orders import (
     active_order,
     order_detail,
     dismiss_order,
+    cancel_order,
 )
 from .payment import (
     payment_webhook,
@@ -74,6 +75,7 @@ __all__ = [
     'active_order',
     'order_detail',
     'dismiss_order',
+    'cancel_order',
     # payment
     'payment_webhook',
     'payment_status',
